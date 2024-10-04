@@ -1,0 +1,215 @@
+body {
+    margin: 0;
+    padding: 0; 
+    background-color: #eee; 
+    font-family: Arial, sans-serif; 
+}
+
+.page {
+    width: 1200px;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+header {
+    background-color: #ffffff;
+    padding: 5px 20px 5px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); 
+    margin-bottom: 20px; 
+}
+main {
+    display: flex;
+    width: 100%;
+}
+
+.recommendations, .products {
+    background-color: #ffffff;
+    flex: 1; 
+    padding: 20px; 
+    box-sizing: border-box; 
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 50%;
+    height:800px;
+}
+.products {
+    flex: 1;                          /* Take remaining space */
+    overflow-y: auto;                /* Enable vertical scrolling */
+}
+
+.products {
+    flex: 1;                          /* Take remaining space */
+    height: 100vh;                   /* Full viewport height */
+    overflow-y: auto;                /* Enable vertical scrolling */
+    background-color: #e0e0e0;       /* Optional: background color */
+    padding: 10px;  
+}
+
+.recommendations {
+    color:#ffffff;
+    background-image: url('/static/images/home_rec_bg.jpg');
+}
+
+.recommendations .featured {
+    padding:20px;
+    width: auto; 
+    height: 400px;
+    background-image: url('/static/images/rec_item_bg.png'); 
+    background-position: center; 
+    background-size: contain;   
+}
+
+.recommendations .featured .image {
+    width: 400px; 
+    max-height: 200px; 
+    margin: 0 auto;
+    background-color: #294734;
+}
+
+.recommendations .featured .image img {
+    width: 100%; 
+    height: auto; 
+    object-fit: cover;
+}
+
+.recommendations .name {
+    text-align: center;
+}
+.recommendations .featured .actions {
+    display: flex;
+    height:80px;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+}
+
+.recommendations .featured .actions div {
+    height:30px;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin: 0 10px;
+    font-size: 20pt;
+    padding: 5px;
+}
+
+.actions {
+    display: flex;
+    height:40px;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+}
+
+.actions div {
+    display: flex;
+    height:20px;
+    justify-content: center;
+    align-items: center; 
+    margin: 0 2px;
+    font-size: 12pt;
+    padding: 2px;
+}
+
+.actions .like {
+    width:30px;
+    color: #000;
+    background-color: #0ff;
+}
+
+.actions .price { 
+    width:60px;
+    color: #000;
+    background-color: #ff0;
+}
+
+.actions .buy {
+    width:30px;
+    color: #000;
+    background-color: #f0f;
+}
+
+main .recommendations .featured .actions .like {
+    width:50px;
+}
+
+main .recommendations .featured .actions .price {
+    width:100px;
+}
+
+.recommendations .featured .actions .buy {
+    width:50px;
+}
+
+.recommendations .list {
+    display: flex;
+    width: auto; 
+    margin: 10px 0;
+}
+
+.recommendations .list .item .image {
+    width: 100px; 
+    max-height: 100px; 
+    margin: 0 auto;
+    background-color: #294734;
+}
+
+.recommendations .list .item .image img {
+    width: 100%; 
+    height: auto; 
+    object-fit: cover;
+}
+
+.recommendations .item {
+    padding:5px;
+    width: 120px; 
+    background-image: url('/static/images/rec_item_bg.png'); 
+    background-position: center; 
+    background-size: contain;   
+    margin: 0 5px;
+}
+.recommendations .item .name{
+    font-size: 10pt;
+}
+.recommendations .item .desc{
+    text-align: center;
+}
+
+.products .cat-name {
+    display: flex;
+    margin: 0;
+    padding:5px;
+}
+
+.products .list {
+    display: flex;
+    width: auto; 
+    justify-content: space-between;  
+    margin: 0 -10px;
+    margin-bottom: 5px;
+}
+
+.products .list .item {
+    padding:5px;
+    width: 120px; 
+    background-position: center; 
+    background-size: contain;   
+    margin: 0 5px;
+    background-color:#eee;
+}
+
+.products .list .item .name{
+    text-align: center;
+}
+
+.products .list .item .image {
+    width: 120px; 
+    max-height: 120px; 
+    margin: 0 auto;
+    background-color: #294734;
+}
+
+.products .list .item .image img {
+    width: 100%; 
+    height: auto; 
+    object-fit: cover;
+}
