@@ -4,7 +4,7 @@ conda activate venv/                # or activate an existing env
 pip3 install -r requirements.txt
 
 Run server
-uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 Create notebooks at top level folder.
 Webpage in side app/ folder
