@@ -10,7 +10,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def read_products(request: Request):
+async def index(request: Request):
     products = [] # dummy product data  
 
     # construct api url dynamically

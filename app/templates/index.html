@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<main class="index">
     <div class="recommendations">
         <!-- personalised recommendations -->
         <h1>Just for you!</h1>
         <div class="featured">
             <!-- top recommended product-->
             <div class="image">
-                <a href="/product/{{ featured_product.id }}"><img src="{{ url_for('static', path='images/' + featured_product.image) }}" alt="{{featured_product.name}}" /></a>
+                <a href="/product?pid={{ featured_product.id }}"><img src="{{ url_for('static', path='images/' + featured_product.image) }}" alt="{{featured_product.name}}" /></a>
             </div>
             <h3 class="name">{{featured_product.name}}</h3>
             <div class="desc">                
@@ -40,4 +42,5 @@
             </div>
         </div>
     </div>
+</main>
 {% endblock %}

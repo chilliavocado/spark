@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<main class="detail">
+    <div class="product">
+        <!-- product details -->
+        <div class="disp1">
+            <!-- title and images-->
+            <h1>{{selected_product.name}}</h1>
+            <div class="image">
+                <img src="{{ url_for('static', path='images/' + selected_product.image) }}" alt="{{selected_product.name}}" />
+            </div>
+        </div>
+        <div class="disp2">
+            <!-- rating, text, and actions -->
+            <div class="rating"> 
+                <div class="stars">
+                    <h3>Rating:</h3> 
+                    <img name="rate" class="star" src="{{ url_for('static', path='images/') }}btn_star.png" data-rating="1" data-pid="{{selected_product.id}}" alt="1 star">
+                    <img name="rate"  class="star" src="{{ url_for('static', path='images/') }}btn_star.png" data-rating="2" data-pid="{{selected_product.id}}" alt="2 stars">
+                    <img name="rate"  class="star" src="{{ url_for('static', path='images/') }}btn_star.png" data-rating="3" data-pid="{{selected_product.id}}" alt="3 stars">
+                    <img name="rate"  class="star" src="{{ url_for('static', path='images/') }}btn_star.png" data-rating="4" data-pid="{{selected_product.id}}" alt="4 stars">
+                    <img name="rate"  class="star" src="{{ url_for('static', path='images/') }}btn_star.png" data-rating="5" data-pid="{{selected_product.id}}" alt="5 stars">
+                </div>
+            </div>
+            <div class="desc">      
+                <h2>Product Details</h2>          
+                {{selected_product.desc}}
+            </div>
+
+            <div class="actions">
+                <!-- actions --> 
+                <div name="like" data-pid="{{selected_product.id}}" class="like"></div>
+                <div class="price">${{selected_product.price}}</div>
+                <div name="buy" data-pid="{{selected_product.id}}" class="buy"></div>
+            </div/>
+        </div>
+    </div>
+
+    <div class="recommendations">
+        <h2>Related products</h2>
+        <div class="list">
+            <!-- the rest of the recommended products-->
+            {% for product in rec_products %}
+                {% include "components/product_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

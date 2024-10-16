@@ -1,7 +1,7 @@
 <div class="item">
     <!-- product-->
     <div class="image">
-        <a href="/product/{{ product.id }}"><img src="{{ url_for('static', path='images/rec_product_img.png') }}" alt="{{product.name}}" /></a>
+        <a href="/product?pid={{ product.id }}"><img src="{{ url_for('static', path='images/rec_product_img.png') }}" alt="{{product.name}}" /></a>
     </div>
     <h5 class="name">{{ product.name }}</h5>
     <div class="actions">
