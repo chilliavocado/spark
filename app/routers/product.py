@@ -25,7 +25,7 @@ async def product(request: Request, pid: int):
             print("Error fetching data:", response.status_code)
             products = [{"ERROR CODE": response.status_code, "Message": response.reason_phrase}]
     
-    selected_product = products[pid]  # dummy data, to be fetch from recommendation api
+    selected_product = products[pid-1]  # dummy data, to be fetch from recommendation api
     rec_products = products[1:5]    # dummy data, to be fetch from recommendation api
 
     return templates.TemplateResponse("product.html",{"request": request, "selected_product": selected_product, "rec_products": rec_products})
