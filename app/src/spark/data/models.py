@@ -25,8 +25,20 @@ class Product:
                        
         
 from time import timestamp
+from enum import Enum
+
+# static list of available interactions
+class InteractionType(Enum):
+    VIEW = "view"
+    LIKE = "like"
+    BUY = "buy"
+    RATE = "rate"
+    EXIT = "exit"
+    SESSION_START = "session_start"
+    SESSION_CLOSE = "session_close"
+    
 class Interaction:
-    def __init__(self, idx:int, timestamp:timestamp, user:Customer, product:Product, mode:str='view', value:int=None) -> None:
+    def __init__(self, idx:int, timestamp:timestamp, user:Customer, product:Product, mode:InteractionType, value:int=None) -> None:
         self.idx = idx
         self.timestamp = timestamp
         self.user = user
