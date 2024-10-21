@@ -38,10 +38,10 @@ class InteractionType(Enum):
     SESSION_CLOSE = "session_close"
     
 class Interaction:
-    def __init__(self, idx:int, timestamp:timestamp, user:Customer, product:Product, mode:InteractionType, value:int=None) -> None:
+    def __init__(self, idx:int, timestamp:timestamp, user:Customer, product:Product, type:InteractionType, value:int=None) -> None:
         self.idx = idx
         self.timestamp = timestamp
         self.user = user
         self.product = product          # load the priced at purchase, not the actual product RRP
-        self.mode = mode
+        self.type = type
         self.value = value
