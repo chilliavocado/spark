@@ -4,6 +4,7 @@ from enum import Enum
 
 # static list of available interactions
 class InteractionType(Enum):
+    NONE = "none"
     VIEW = "view"
     LIKE = "like"
     BUY = "buy"
