@@ -26,7 +26,7 @@ class Product:
         self.price = price              # highest price (RRP) of the product (lower may due to discount)
                        
         
-from time import timestamp
+from datetime import datetime
 from enum import Enum
 
 # static list of available interactions
@@ -40,7 +40,7 @@ class InteractionType(Enum):
     SESSION_CLOSE = "session_close"
     
 class Interaction:
-    def __init__(self, idx:int, timestamp:timestamp, user:Customer, product:Product, type:InteractionType, value:int=None) -> None:
+    def __init__(self, idx:int, timestamp:datetime, user:Customer, product:Product, type:InteractionType, value:int=None) -> None:
         self.idx = idx
         self.timestamp = timestamp
         self.user = user
