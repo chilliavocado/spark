@@ -1,13 +1,14 @@
 from typing import List
 
 class Customer:
-    def __init__(self, idx: int, city:str, purchases:List[int], views:List[int], likes:List[int], ratings:List[int]) -> None:
+    def __init__(self, idx: int, city:str, purchases:List[int], views:List[int], likes:List[int], ratings:List[int], interactions:List[Interaction]) -> None:
         self.idx = idx                  # user idx as id from the db
         self.city = city                # city where the customer is regisgtered
         self.purchases = purchases      # number of purchases for each product. format [0,4,0,2]
         self.views = views              # number of views for each product. format [0,30,23,3]
         self.likes = likes              # like for each product. format [0,1,0,1]
         self.ratings = ratings          # max rating(0-5)for each product. format [0,1,4,2,0]
+        self.interactions = interactions
         
 class Category:
     """ Product category """
@@ -40,10 +41,10 @@ class InteractionType(Enum):
     SESSION_CLOSE = "session_close"
     
 class Interaction:
-    def __init__(self, idx:int, timestamp:datetime, user:Customer, product:Product, type:InteractionType, value:int=None) -> None:
+    def __init__(self, idx:int, timestamp:datetime, customer_idx:int, product_idx:int, type:InteractionType, value:int=None) -> None:
         self.idx = idx
         self.timestamp = timestamp
-        self.user = user
-        self.product = product          # load the priced at purchase, not the actual product RRP
+        self.customer_idx = customer_idx
+        self.product_idx = product_idx          # load the priced at purchase, not the actual product RRP
         self.type = type
         self.value = value
