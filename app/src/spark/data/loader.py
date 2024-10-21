@@ -24,6 +24,10 @@ def load_interactions(idxs:list=[], k=0):
         
     return interactions
 
+def store_interactions(interactions:Interaction):
+    # TODO: store interactions into file
+    pass
+
 def load_categories(idxs:list=[]):
     # TODO: get categoires in objects from the db
     # If list is empty, return all categories
@@ -55,4 +59,5 @@ def load_products(idxs:list=[]):
         pass
         
     return products
+
     
