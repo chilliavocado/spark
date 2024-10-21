@@ -1,7 +1,7 @@
 from typing import List
 from spark.data.models import Customer, Category, Product, Interaction
 
-def load_customers(idxs:List[int]=[]) -> List[Customer]:
+def load_customers(idxs:List[int]=[], include_interactions=False) -> List[Customer]:
     customers = []
     # TODO: get a list of customers with given idx list
     # If list is empty, return all customers
@@ -10,9 +10,13 @@ def load_customers(idxs:List[int]=[]) -> List[Customer]:
         # TODO: construct Customer objects and add to list
         pass
         
+    if include_interactions:
+        # load interaction for this customer
+        pass
+    
     return customers
 
-def load_interactions(idxs:List[int]=[], k:int=0) -> List[Interaction]:
+def load_interactions(idxs:List[int]=[], customer_idxs:List[int]=[], k:int=0) -> List[Interaction]:
     interactions = []
     # TODO: get a list of interactoins with given idx list
     # If list is empty, return all interactions
@@ -20,6 +24,10 @@ def load_interactions(idxs:List[int]=[], k:int=0) -> List[Interaction]:
     # if k > 0, return the most recent k interactions
     
     for idx in idxs:
+        # TODO: construct Interaction and related objects and add to list
+        pass
+        
+    for c_idx in customer_idxs:
         # TODO: construct Interaction and related objects and add to list
         pass
         
