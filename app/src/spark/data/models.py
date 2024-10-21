@@ -1,5 +1,7 @@
+from typing import List
+
 class Customer:
-    def __init__(self, idx: int, city: str, purchases: list, views: list, likes: list, ratings: list) -> None:
+    def __init__(self, idx: int, city:str, purchases:List[int], views:List[int], likes:List[int], ratings:List[int]) -> None:
         self.idx = idx                  # user idx as id from the db
         self.city = city                # city where the customer is regisgtered
         self.purchases = purchases      # number of purchases for each product. format [0,4,0,2]
