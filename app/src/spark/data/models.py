@@ -1,5 +1,26 @@
 from typing import List
+from datetime import datetime
+from enum import Enum
 
+# static list of available interactions
+class InteractionType(Enum):
+    VIEW = "view"
+    LIKE = "like"
+    BUY = "buy"
+    RATE = "rate"
+    EXIT = "exit"
+    SESSION_START = "session_start"
+    SESSION_CLOSE = "session_close"
+    
+class Interaction:
+    def __init__(self, idx:int, timestamp:datetime, customer_idx:int, product_idx:int, type:InteractionType, value:int=None) -> None:
+        self.idx = idx
+        self.timestamp = timestamp
+        self.customer_idx = customer_idx
+        self.product_idx = product_idx          # load the priced at purchase, not the actual product RRP
+        self.type = type
+        self.value = value
+        
 class Customer:
     def __init__(self, idx: int, city:str, purchases:List[int], views:List[int], likes:List[int], ratings:List[int], interactions:List[Interaction]) -> None:
         self.idx = idx                  # user idx as id from the db
@@ -26,25 +47,3 @@ class Product:
         self.category = category        # category idx as id from the db
         self.price = price              # highest price (RRP) of the product (lower may due to discount)
                        
-        
-from datetime import datetime
-from enum import Enum
-
-# static list of available interactions
-class InteractionType(Enum):
-    VIEW = "view"
-    LIKE = "like"
-    BUY = "buy"
-    RATE = "rate"
-    EXIT = "exit"
-    SESSION_START = "session_start"
-    SESSION_CLOSE = "session_close"
-    
-class Interaction:
-    def __init__(self, idx:int, timestamp:datetime, customer_idx:int, product_idx:int, type:InteractionType, value:int=None) -> None:
-        self.idx = idx
-        self.timestamp = timestamp
-        self.customer_idx = customer_idx
-        self.product_idx = product_idx          # load the priced at purchase, not the actual product RRP
-        self.type = type
-        self.value = value
