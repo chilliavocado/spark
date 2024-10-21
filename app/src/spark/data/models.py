@@ -45,6 +45,6 @@ class Product:
         self.desc = desc                # description of the product
         self.long_desc = long_desc      # long description of the product
         self.name = name                # name of the product
-        self.category = category        # category idx as id from the db
+        self.category = category        # category object associated with product
         self.price = price              # highest price (RRP) of the product (lower may due to discount)
                        
