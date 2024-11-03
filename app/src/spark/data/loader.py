@@ -2,12 +2,12 @@ from typing import List
 from datetime import datetime
 import pandas as pd
 import ast
-from spark.data.models import Customer, Category, Product, Interaction, InteractionType
+from app.src.spark.data.models import Customer, Category, Product, Interaction, InteractionType
 
 
 def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> List[Customer]:
-    customer_df = pd.read_csv("./preprocessed_data/Customer.csv")
-    interaction_df = pd.read_csv("./preprocessed_data/Interaction.csv") if include_interactions else None
+    customer_df = pd.read_csv("app/src/spark/data/preprocessed_data/Customer.csv")
+    interaction_df = pd.read_csv("app/src/spark/data/preprocessed_data/Interaction.csv") if include_interactions else None
 
     if idxs:
         customer_df = customer_df[customer_df["idx"].isin(idxs)]
@@ -42,7 +42,7 @@ def parse_vector_field(field: str) -> List[float]:
 
 
 def load_interactions(idxs: List[int] = [], customer_idxs: List[int] = [], k: int = 0) -> List[Interaction]:
-    interaction_df = pd.read_csv("./preprocessed_data/Customer_Interactions.csv")
+    interaction_df = pd.read_csv("app/src/spark/data/preprocessed_data/Customer_Interactions.csv")
 
     if idxs:
         interaction_df = interaction_df[interaction_df["idx"].isin(idxs)]
@@ -88,11 +88,11 @@ def store_interactions(interactions: List[Interaction]):
         for i in interactions
     ]
     interaction_df = pd.DataFrame(interaction_data)
-    interaction_df.to_csv("./preprocessed_data/Interaction.csv", index=False)
+    interaction_df.to_csv("app/src/spark/data/preprocessed_data/Interaction.csv", index=False)
 
 
 def load_categories(idxs: List[int] = []) -> List[Category]:
-    category_df = pd.read_csv("./preprocessed_data/Category.csv")
+    category_df = pd.read_csv("app/src/spark/data/preprocessed_data/Category.csv")
     if idxs:
         category_df = category_df[category_df["idx"].isin(idxs)]
 
@@ -101,8 +101,8 @@ def load_categories(idxs: List[int] = []) -> List[Category]:
 
 
 def load_products(idxs: List[int] = []) -> List[Product]:
-    product_df = pd.read_csv("./preprocessed_data/Product.csv")
-    category_df = pd.read_csv("./preprocessed_data/Category.csv")
+    product_df = pd.read_csv("app/src/spark/data/preprocessed_data/Product.csv")
+    category_df = pd.read_csv("app/src/spark/data/preprocessed_data/Category.csv")
 
     category_map = {row["idx"]: Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()}
 
