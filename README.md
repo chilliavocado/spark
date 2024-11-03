@@ -20,7 +20,7 @@
 To start the server, run the following command:
 
 ```sh
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload
 ```
 
 Create notebooks at top level folder
