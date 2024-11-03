@@ -6,6 +6,7 @@ from app.routers import index, product, api
 
 app = FastAPI()
 
+
 # no cache response to prevent stale content
 class NoCacheMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -14,6 +15,7 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
         return response
+
 
 # Add the middleware to your FastAPI application
 app.add_middleware(NoCacheMiddleware)

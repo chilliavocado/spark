@@ -1,370 +1,373 @@
 body {
-    margin: 0;
-    padding: 0; 
-    background-color: #eee; 
-    font-family: Arial, sans-serif; 
+  margin: 0;
+  padding: 0;
+  background-color: #eee;
+  font-family: Arial, sans-serif;
 }
 
 .page {
-    width: 1200px;
-    margin: 0 auto;
-    border-radius: 8px;
+  width: 1200px;
+  margin: 0 auto;
+  border-radius: 8px;
 }
 
 header {
-    height:80px;
-    background-color: #000;
-    color: #fff;
-    padding: 5px 20px 5px 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); 
-    margin-bottom: 10px; 
-    background-image: url('/static/images/header_bg.png');
-    background-position: center; 
-    background-size: contain;  
+  height: 80px;
+  background-color: #000;
+  color: #fff;
+  padding: 5px 20px 5px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+  background-image: url("/static/images/header_bg.png");
+  background-position: center;
+  background-size: contain;
 }
 
 .logo {
-    height: 50px;
-    border:0;
-    margin:0;
+  height: 50px;
+  border: 0;
+  margin: 0;
 }
 
 main {
-    display: flex;
-    width: 100%;
-    height:700px;
+  display: flex;
+  width: 100%;
+  height: 700px;
 }
 
 .index .recommendations h1 {
-    padding:0;
-    margin:0;
+  padding: 0;
+  margin: 0;
 }
-.index .recommendations, .index .products {
-    background-color: #ffffff;
-    flex: 1; 
-    padding: 20px; 
-    box-sizing: border-box; 
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    width: 50%;
-    height:100%;
-    overflow: hidden;
+.index .recommendations,
+.index .products {
+  background-color: #ffffff;
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .index .recommendations {
-    margin-right: 10px;
-    color:#ffffff;
-    background-image: url('/static/images/home_rec_bg.jpg');
+  margin-right: 10px;
+  color: #ffffff;
+  background-image: url("/static/images/home_rec_bg.jpg");
 }
 
 .recommendations .featured {
-    width: auto; 
-    height: 435px;
-    padding:10px;
-    background-image: url('/static/images/rec_item_bg.png'); 
-    background-position: center; 
-    background-size: contain;   
+  width: auto;
+  height: 435px;
+  padding: 10px;
+  background-image: url("/static/images/rec_item_bg.png");
+  background-position: center;
+  background-size: contain;
 }
 
 .recommendations .featured .image {
-    width: 400px; 
-    max-height: 200px; 
-    margin: 0 auto;
-    background-color: #294734;
+  width: 400px;
+  max-height: 200px;
+  margin: 0 auto;
+  background-color: #294734;
 }
 
 .recommendations .featured .image img {
-    width: 100%; 
-    height: auto; 
-    object-fit: cover;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 
 .recommendations .featured .name {
-    text-align: center;
+  text-align: center;
 }
 
 .recommendations .featured .desc {
-    font-size:10pt;
-    max-height: 100px;
-    overflow: auto;
-    margin-bottom: 10px;
+  font-size: 10pt;
+  max-height: 100px;
+  overflow: auto;
+  margin-bottom: 10px;
 }
 
 .recommendations .featured .actions,
 .product .actions {
-    display: flex;
-    height:60px;
-    align-items: center;
-    justify-content: center;
-    margin-top: auto;
+  display: flex;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
 }
 
 .recommendations .featured .actions div,
 .product .actions div {
-    height:30px;
-    display: flex;
-    justify-content: center;
-    align-items: center; 
-    margin: 0 10px;
-    font-size: 20pt;
-    padding: 5px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 10px;
+  font-size: 20pt;
+  padding: 5px;
 }
 
 .actions {
-    display: flex;
-    height:40px;
-    align-items: center;
-    justify-content: center;
-    margin: 5px;
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
 }
 
 .actions div {
-    display: flex;
-    height:20px;
-    justify-content: center;
-    align-items: center; 
-    margin: 0 2px;
-    font-size: 12pt;
-    padding: 2px;
+  display: flex;
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+  margin: 0 2px;
+  font-size: 12pt;
+  padding: 2px;
 }
 
 .actions .like {
-    width:30px;
-    color: #000;
-    background-image: url('/static/images/btn_like.png'); 
-    background-position: center; 
-    background-repeat: no-repeat;
-    background-size: contain;    
-    cursor: pointer; 
+  width: 30px;
+  color: #000;
+  background-image: url("/static/images/btn_like.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
 }
 
 .actions .like-on {
-    background-image: url('/static/images/btn_like_on.png'); 
+  background-image: url("/static/images/btn_like_on.png");
 }
 
-.actions .price { 
-    width:60px;
-    color: #000;
-    background-color: rgb(250, 238, 6);
-    border-radius: 3px;
+.actions .price {
+  width: 60px;
+  color: #000;
+  background-color: rgb(250, 238, 6);
+  border-radius: 3px;
 }
 
 .actions .buy {
-    width:30px;
-    color: #000;
-    background-image: url('/static/images/btn_buy.png'); 
-    background-position: center; 
-    background-position: center; 
-    background-repeat: no-repeat;
-    background-size: contain; 
-    cursor: pointer;
+  width: 30px;
+  color: #000;
+  background-image: url("/static/images/btn_buy.png");
+  background-position: center;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
 }
 
 .index .recommendations .featured .actions .like {
-    width:50px;
+  width: 50px;
 }
 
 .index .recommendations .featured .actions .price,
 .product .actions .price {
-    width:100px;
+  width: 100px;
 }
 
 .recommendations .featured .actions .buy {
-    width:50px;
+  width: 50px;
 }
 
 .recommendations .list {
-    display: flex;
-    width: auto; 
-    margin: 10px 0;
+  display: flex;
+  width: auto;
+  margin: 10px 0;
 }
 
 .recommendations .list .item .image {
-    width: 100px; 
-    max-height: 100px; 
-    margin: 0 auto;
-    background-color: #294734;
+  width: 100px;
+  max-height: 100px;
+  margin: 0 auto;
+  background-color: #294734;
 }
 
 .recommendations .list .item .image img {
-    width: 100%; 
-    height: auto; 
-    object-fit: cover;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 
 .recommendations .item {
-    padding:5px;
-    width: 120px; 
-    background-image: url('/static/images/rec_item_bg.png'); 
-    background-position: center; 
-    background-size: contain;   
-    margin: 0 5px;
+  padding: 5px;
+  width: 120px;
+  background-image: url("/static/images/rec_item_bg.png");
+  background-position: center;
+  background-size: contain;
+  margin: 0 5px;
 }
 
 .recommendations .item .name {
-    text-align: center;
-    padding:0;
-    margin:0;
+  text-align: center;
+  padding: 0;
+  margin: 0;
 }
 
-.recommendations .item .desc{
-    text-align: center;
+.recommendations .item .desc {
+  text-align: center;
 }
 
 .catalogue {
-    height: 100vh;
-    overflow-y: auto; 
-    margin-right:-10px;
-    height: calc(100% - 40px);
+  height: 100vh;
+  overflow-y: auto;
+  margin-right: -10px;
+  height: calc(100% - 40px);
 }
 
 .products .cat-name {
-    font-size: 20px;  
-    color: #333;   
-    margin-top: 0px;   
-    margin-bottom: 10px; 
-    padding: 5px;     
-    text-align: center;  
-    background-color: #f0f0f0; 
-    border: 1px solid #ccc;   
-    border-radius: 5px;   
+  font-size: 20px;
+  color: #333;
+  margin-top: 0px;
+  margin-bottom: 10px;
+  padding: 5px;
+  text-align: center;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
 .products .list {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -10px;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10px;
 }
 
 .products .list .item {
-    width: 130px; 
-    background-position: center; 
-    background-size: contain;   
-    margin: 7px;
-    background-color:#eee;
+  width: 130px;
+  background-position: center;
+  background-size: contain;
+  margin: 7px;
+  background-color: #eee;
 }
 
-.products .list .item .name{
-    text-align: center;
-    padding:0;
-    margin:0;
+.products .list .item .name {
+  text-align: center;
+  padding: 0;
+  margin: 0;
 }
 
-.products .list .item .desc{
-    padding:5px;
+.products .list .item .desc {
+  padding: 5px;
 }
 
 .products .list .item .image {
-    max-height: 120px; 
-    margin: 0 auto;
+  max-height: 120px;
+  margin: 0 auto;
 }
 
 .products .list .item .image img {
-    width: 100%; 
-    height: auto; 
-    object-fit: cover;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 
 .detail {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-.detail .recommendations, .detail .product {
-    background-color: #ffffff;
-    padding: 20px; 
-    box-sizing: border-box; 
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    overflow: hidden;
+.detail .recommendations,
+.detail .product {
+  background-color: #ffffff;
+  padding: 20px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  overflow: hidden;
 }
 
 .detail .product {
-    flex: 2;
-    display: flex;
-    margin-bottom: 10px;
-    height: auto;;
-    justify-content: center; /* Center content horizontally */
-    align-items: center; /* Center content vertically */
+  flex: 2;
+  display: flex;
+  margin-bottom: 10px;
+  height: auto;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
 }
 
 .detail .product h1 {
-    text-align: center;
+  text-align: center;
 }
 
 .detail .product h2 {
-    margin-top: 0;
+  margin-top: 0;
 }
 
-.detail .product .disp1, .detail .product .disp2 {
-    flex: 1; 
-    height:100%;
-    display: flex;
-    flex-direction: column;
+.detail .product .disp1,
+.detail .product .disp2 {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail .product .disp2 .rating {
-    margin: 10px 0;
-    text-align: right;
+  margin: 10px 0;
+  text-align: right;
 }
 
 .detail .product .disp2 .desc {
-    margin-bottom: 10px;
-    overflow: auto;
+  margin-bottom: 10px;
+  overflow: auto;
 }
 
 .detail .product .disp2 .actions {
-    margin-top: auto;
+  margin-top: auto;
 }
 
 .detail .product .image {
-    flex:2;
-    padding: 0 30px;
-    margin: 0 auto;
-    text-align: center;
+  flex: 2;
+  padding: 0 30px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .detail .product .image img {
-    width: 100%;
-    height: 100%;
-    object-fit:contain;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .product .rating {
-    display: flex;
-    width:100%;
-    align-content: right;
+  display: flex;
+  width: 100%;
+  align-content: right;
 }
 
 .product .rating h3 {
-    display: flex;
-    width:100%;
-    padding:0;
-    margin:0 10px;
-    align-content: right;
+  display: flex;
+  width: 100%;
+  padding: 0;
+  margin: 0 10px;
+  align-content: right;
 }
 
 .product .rating .stars {
-    display: flex;
-    margin-left: auto;
-    align-items: center;
+  display: flex;
+  margin-left: auto;
+  align-items: center;
 }
 
 .stars .star {
-    width: 30px;
-    height: 30px;
-    margin: 2px;
-    background-image: url('/static/images/btn_star.png'); 
-    background-position: center; 
-    background-repeat: no-repeat;
-    background-size: contain;    
-    cursor: pointer; 
+  width: 30px;
+  height: 30px;
+  margin: 2px;
+  background-image: url("/static/images/btn_star.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  cursor: pointer;
 }
 
 .stars .star-on {
-    background-image: url('/static/images/btn_star_on.png'); 
+  background-image: url("/static/images/btn_star_on.png");
 }
 
 .detail .recommendations {
-    margin-top: auto;
+  margin-top: auto;
 }

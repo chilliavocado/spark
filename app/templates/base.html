@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>S.P.A.R.K.</title>    
-    <link rel="stylesheet" href="{{ url_for('static', path='css/spark.css') }}">
-    <script src="{{ url_for('static', path='js/spark.js') }}" defer></script>
-  </head>
-  <body>
-    <div class="page">
-        <header>
-            <nav>
-                <a href="/"><img src="{{ url_for('static', path='images/logo.png') }}" class="logo"></a><br>
-                Smart agent for product recommendations
-            </nav> 
-        </header>
-        {% block content %}
-        {% endblock %}
-        <footer>
-            <p>© 2024 S.P.A.R.K.</p>
-        </footer>
-    </div>
-  </body>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>S.P.A.R.K.</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='css/spark.css') }}">
+  <script src="{{ url_for('static', path='js/spark.js') }}" defer></script>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <nav>
+        <a href="/"><img src="{{ url_for('static', path='images/logo.png') }}" class="logo"></a><br>
+        Smart agent for product recommendations
+      </nav>
+    </header>
+    {% block content %}
+    {% endblock %}
+    <footer>
+      <p>© 2024 S.P.A.R.K.</p>
+    </footer>
+  </div>
+</body>
+
 </html>

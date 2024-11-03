@@ -1,14 +1,32 @@
-Environment setup:
-conda create -p venv/ python==3.11  # or use an existing env
-conda activate venv/                # or activate an existing env
-pip3 install -r requirements.txt
+# Project Setup and Instructions
 
-Run server
+## Environment Setup
+
+1. Create a new conda environment (or use an existing one):
+
+    ```sh
+    conda create -p venv/ python==3.11
+    conda activate venv/
+    ```
+
+2. Install the required dependencies:
+
+    ```sh
+    pip3 install -r requirements.txt
+    ```
+
+## Running the Server
+
+To start the server, run the following command:
+
+```sh
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-Create notebooks at top level folder.
+Create notebooks at top level folder
+
 Webpage in side app/ folder
 
-Please commit working code.
- 
-More details to come.
+Please commit working code
+
+More details to come
