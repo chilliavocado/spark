@@ -6,7 +6,8 @@ body {
 }
 
 .page {
-  width: 1200px;
+  /* width: 1200px; */
+  width: 90%;
   margin: 0 auto;
   border-radius: 8px;
 }
@@ -32,7 +33,8 @@ header {
 main {
   display: flex;
   width: 100%;
-  height: 700px;
+  /* height: 700px; */
+  height: 56vh;
 }
 
 .index .recommendations h1 {
@@ -177,6 +179,8 @@ main {
   display: flex;
   width: auto;
   margin: 10px 0;
+  justify-content: space-evenly;
+  align-items: center;
 }
 
 .recommendations .list .item .image {
@@ -234,14 +238,16 @@ main {
   display: flex;
   flex-wrap: wrap;
   margin: 0 -10px;
+  gap: 45px;
 }
 
 .products .list .item {
   width: 130px;
   background-position: center;
   background-size: contain;
-  margin: 7px;
+  /* margin: 7px; */
   background-color: #eee;
+  padding: 23px;
 }
 
 .products .list .item .name {

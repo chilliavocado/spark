@@ -3,7 +3,6 @@ from datetime import datetime
 from enum import Enum
 
 
-# static list of available interactions
 class InteractionType(Enum):
     NONE = "none"
     VIEW = "view"
@@ -20,44 +19,35 @@ class Interaction:
         self,
         idx: str,
         timestamp: datetime,
-        customer_idx: int,
         product_idx: int,
+        customer_idx: int,
         type: InteractionType,
-        value: Optional[float] = None,
+        value: float = 0.0,
         review_score: Optional[int] = None,
-        city_embedding: Optional[List[int]] = None,
-        state_embedding: Optional[List[int]] = None,
-        zip_code_embedding: Optional[List[int]] = None,
-        product_purchase_history: Optional[List[float]] = None,
-        category_purchase_history: Optional[List[float]] = None,
-        rate_history: Optional[List[float]] = None,
-    ) -> None:
+    ):
         self.idx = idx
         self.timestamp = timestamp
-        self.customer_idx = customer_idx
         self.product_idx = product_idx
+        self.customer_idx = customer_idx
         self.type = type
         self.value = value
         self.review_score = review_score
-        self.city_embedding = city_embedding
-        self.state_embedding = state_embedding
-        self.zip_code_embedding = zip_code_embedding
-        self.product_purchase_history = product_purchase_history
-        self.category_purchase_history = category_purchase_history
-        self.rate_history = rate_history
 
 
 class Customer:
-    def __init__(self, idx: int, zip_code: int, city: str, state: str, interactions: Optional[List[Interaction]] = None) -> None:
+    def __init__(self, idx: int, zip_code: int, city: str, state: str, num_products: int):
         self.idx = idx
         self.zip_code = zip_code
         self.city = city
         self.state = state
-        self.interactions = interactions if interactions is not None else []
+        self.views = [0] * num_products
+        self.likes = [0] * num_products
+        self.purchases = [0] * num_products
+        self.ratings = [0] * num_products
 
 
 class Category:
-    def __init__(self, idx: int, name: str, desc: str) -> None:
+    def __init__(self, idx: int, name: str, desc: str):
         self.idx = idx
         self.name = name
         self.desc = desc

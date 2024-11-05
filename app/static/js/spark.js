@@ -1,84 +1,90 @@
-// register event to all action buttons
+// Register event to all action buttons once the DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
-  // add events to all action buttons
+  // Attach event listeners for action buttons
   const likeButtons = document.getElementsByName("like");
-  for (let i = 0; i < likeButtons.length; i++) {
-    likeButtons[i].addEventListener("click", addExperience);
-    likeButtons[i].addEventListener("click", toggleLike);
-    likeButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    likeButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  likeButtons.forEach((button) => {
+    button.addEventListener("click", handleLike);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
 
-  // rate buttons
   const buyButtons = document.getElementsByName("buy");
-  for (let i = 0; i < buyButtons.length; i++) {
-    buyButtons[i].addEventListener("click", addExperience);
-    buyButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    buyButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  buyButtons.forEach((button) => {
+    button.addEventListener("click", handleBuy);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
 
-  // rate buttons
   const rateButtons = document.getElementsByName("rate");
-  for (let i = 0; i < rateButtons.length; i++) {
-    rateButtons[i].addEventListener("click", addExperience);
-    rateButtons[i].addEventListener("click", rate);
-    rateButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    rateButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  rateButtons.forEach((button) => {
+    button.addEventListener("click", handleRate);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
+
+  // Track product views only when they are actually interacted with
 });
 
-// like button image toggle
+// Like button handler
+function handleLike(event) {
+  const productId = event.target.getAttribute("data-pid");
+  toggleLike(event);
+  sendInteraction("like", productId);
+}
+
+// Toggle like button style
 function toggleLike(event) {
   const liked = event.target.classList.contains("like-on");
-  likeProduct(event, !liked); // toggle status
+  event.target.className = liked ? "like" : "like like-on";
 }
 
-function likeProduct(event, like = true) {
-  event.target.className = like ? "like like-on" : "like";
+// Buy button handler
+function handleBuy(event) {
+  const productId = event.target.getAttribute("data-pid");
+  sendInteraction("buy", productId);
 }
 
-// like button image toggle
-function rate(event) {
-  target = event.target;
-  rating = parseInt(target.getAttribute("data-rating"), 10);
-  pid = target.getAttribute("data-pid");
-
-  rateProduct(rating, pid);
+// Rate button handler
+function handleRate(event) {
+  const rating = parseInt(event.target.getAttribute("data-rating"), 10);
+  const productId = event.target.getAttribute("data-pid");
+  updateRatingDisplay(rating, productId);
+  sendInteraction("rate", productId, rating);
 }
 
-function rateProduct(rating, pid) {
-  // style stars to display rating
-  const rateButtons = document.getElementsByName("rate");
-  for (let i = 0; i < rateButtons.length; i++) {
-    rateButton = rateButtons[i];
-    if (rateButton.getAttribute("data-pid") != pid) return;
-
-    if (i < rating) {
-      rateButton.className = "star star-on";
-    } else {
-      rateButton.className = "star";
-    }
-  }
+// Update rating display stars
+function updateRatingDisplay(rating, productId) {
+  const rateButtons = document.querySelectorAll(
+    `[data-pid="${productId}"][name="rate"]`
+  );
+  rateButtons.forEach((button, index) => {
+    button.className = index < rating ? "star star-on" : "star";
+  });
 }
 
-// add experience to database for RL
-function addExperience(event) {
-  target = event.target;
-  action = target.getAttribute("name");
-  pid = target.getAttribute("data-pid");
+// Send interaction data to backend
+function sendInteraction(action, productId, value = null) {
+  const interactionData = {
+    user_id: 1, // Replace with dynamic user ID if applicable
+    product_id: parseInt(productId),
+    interaction_type: action,
+    value: value,
+    timestamp: new Date().toISOString(),
+  };
 
-  console.log(action + " product " + pid);
-
-  switch (action) {
-    case "like":
-      break;
-    case "buy":
-      break;
-    case "view":
-      break;
-    case "rate":
-      break;
-    default:
-    // do nothing
-  }
+  fetch("/api/interaction", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(interactionData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        console.error("Error logging interaction:", response.statusText);
+      }
+    })
+    .catch((error) => {
+      console.error("Network error logging interaction:", error);
+    });
 }
