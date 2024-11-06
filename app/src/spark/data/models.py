@@ -53,6 +53,10 @@ class Customer:
         self.zip_code = zip_code
         self.city = city
         self.state = state
+        self.buys = []  # number of purchases for each product. format [0,4,0,2]
+        self.views = []  # number of views for each product. format [0,30,23,3]
+        self.likes = []  # like for each product. format [0,1,0,1]
+        self.ratings = []  # max rating(0-5)for each product. format [0,1,4,2,0]
         self.interactions = interactions if interactions is not None else []
 
 
