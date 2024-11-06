@@ -7,7 +7,7 @@
       <div class="image">
         <a href="/product/{{ featured_product.id }}">
           <img
-            src="{{ url_for('static', path='images/featured_product.png') }}"
+            src="{{ url_for('static', path='images/placeholder_img.png') }}"
             alt="{{ featured_product.name }}"
           />
         </a>
@@ -20,7 +20,6 @@
           data-pid="{{ featured_product.id }}"
           data-user-id="{{ user_id }}"
           class="like"
-          onclick="handleLike(event)"
         ></div>
         <div class="price">${{ featured_product.price }}</div>
         <div
@@ -28,7 +27,6 @@
           data-pid="{{ featured_product.id }}"
           data-user-id="{{ user_id }}"
           class="buy"
-          onclick="handleBuy(event)"
         ></div>
       </div>
     </div>

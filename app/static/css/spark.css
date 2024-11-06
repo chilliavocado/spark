@@ -69,8 +69,8 @@ main {
 }
 
 .recommendations .featured .image {
-  width: 400px;
-  max-height: 200px;
+  width: 325px;
+  /* max-height: 200px; */
   margin: 0 auto;
   background-color: #294734;
 }
@@ -90,6 +90,7 @@ main {
   max-height: 100px;
   overflow: auto;
   margin-bottom: 10px;
+  font-style: italic;
 }
 
 .recommendations .featured .actions,
@@ -188,7 +189,7 @@ main {
   width: 100px;
   max-height: 100px;
   margin: 0 auto;
-  background-color: #294734;
+  /* background-color: #294734; */
 }
 
 .recommendations .list .item .image img {
@@ -198,22 +199,29 @@ main {
 }
 
 .recommendations .item {
-  padding: 5px;
-  width: 120px;
-  background-image: url("/static/images/rec_item_bg.png");
+  padding: 10px;
+  width: 15%;
+  background: #f6f6f6;
+  /* background-image: url(/static/images/rec_item_bg.png); */
   background-position: center;
   background-size: contain;
   margin: 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid lightgray;
+  border-radius: 25px;
 }
 
 .recommendations .item .name {
   text-align: center;
   padding: 0;
   margin: 0;
+  color: black;
 }
 
 .recommendations .item .desc {
   text-align: center;
+  font-style: italic;
 }
 
 .catalogue {
@@ -239,7 +247,8 @@ main {
   display: flex;
   flex-wrap: wrap;
   margin: 0 -10px;
-  gap: 45px;
+  gap: 12px;
+  justify-content: center;
 }
 
 .products .list .item {
@@ -249,6 +258,10 @@ main {
   /* margin: 7px; */
   background-color: #eee;
   padding: 23px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* text-overflow: ellipsis; */
 }
 
 .products .list .item .name {
@@ -259,6 +272,7 @@ main {
 
 .products .list .item .desc {
   padding: 5px;
+  font-style: italic;
 }
 
 .products .list .item .image {
@@ -321,6 +335,7 @@ main {
 .detail .product .disp2 .desc {
   margin-bottom: 10px;
   overflow: auto;
+  font-style: italic;
 }
 
 .detail .product .disp2 .actions {
@@ -350,7 +365,7 @@ main {
   display: flex;
   width: 100%;
   padding: 0;
-  margin: 0 10px;
+  /* margin: 0 10px; */
   align-content: right;
 }
 
