@@ -130,18 +130,35 @@ def load_interactions(product_id_to_index: Dict[int, int], customer_id_to_index:
     return interactions
 
 
+def get_next_interaction_id():
+    """Retrieve the next interaction ID based on the last entry in the Interaction.csv file."""
+    file_path = f"{data_dir}/Interaction.csv"
+    try:
+        with open(file_path, mode="r") as file:
+            last_line = file.readlines()[-1]
+            last_id = int(last_line.split(",")[0])  # First column is the interaction ID
+            return last_id + 1
+    except (IndexError, FileNotFoundError):
+        # Start from 0 if the file is empty or doesn't exist
+        return 0
+
+
 def save_interaction(interaction_data):
-    with open(f"{data_dir}/Interaction.csv", "a", newline="") as file:
+    """Save interaction data to the Interaction.csv file."""
+    file_path = f"{data_dir}/Interaction.csv"
+
+    # Append interaction data as a new row in the CSV file
+    with open(file_path, mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(
             [
                 interaction_data["id"],
                 interaction_data["timestamp"].strftime("%Y-%m-%d %H:%M:%S"),
-                f"order-{interaction_data['id']}",
+                interaction_data["idx"],
                 interaction_data["product_idx"],
                 interaction_data["customer_idx"],
-                interaction_data["review_score"] or 0,
-                interaction_data["type"].value,
+                interaction_data["review_score"],
+                interaction_data["type"],
                 interaction_data["value"],
             ]
         )

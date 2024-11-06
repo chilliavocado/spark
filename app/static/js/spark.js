@@ -33,14 +33,62 @@ document.addEventListener("DOMContentLoaded", function () {
     button.setAttribute("tabindex", "0");
     button.setAttribute("role", "button");
   });
+
+  // Attach event listeners to product links for view tracking
+  const productLinks = document.querySelectorAll(".product-view-link");
+  productLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const productId = link.getAttribute("data-pid"); // Fix by ensuring `link` reference
+      const userId = getUserID();
+      trackView(productId, userId);
+    });
+  });
+
+  // Restore like status on load
+  restoreLikeStatus();
 });
+
+// Track product view interaction
+function trackView(productId, userId) {
+  console.log("Product view:", productId, userId);
+  sendInteraction("view", productId, userId);
+}
 
 // Like button handler
 function handleLike(event) {
   const productId = event.target.getAttribute("data-pid");
   const userId = getUserID();
-  toggleLike(event);
-  sendInteraction("like", productId, userId);
+  const isLiked = toggleLike(event);
+
+  // Set interaction value to 1 for like, 0 for unlike
+  const value = isLiked ? 1 : 0;
+  saveLikeStatus(productId, isLiked); // Persist like status
+  sendInteraction("like", productId, userId, value);
+}
+
+// Save like status to localStorage for persisting per user and product
+function saveLikeStatus(productId, isLiked) {
+  const likes = JSON.parse(localStorage.getItem("likes") || "{}");
+  likes[productId] = isLiked;
+  localStorage.setItem("likes", JSON.stringify(likes));
+}
+
+// Restore like status from localStorage on load
+function restoreLikeStatus() {
+  const likes = JSON.parse(localStorage.getItem("likes") || "{}");
+  const likeButtons = document.getElementsByName("like");
+  likeButtons.forEach((button) => {
+    const productId = button.getAttribute("data-pid");
+    if (likes[productId]) {
+      button.classList.add("like-on");
+    }
+  });
+}
+
+// Toggle like button style
+function toggleLike(event) {
+  const liked = event.target.classList.toggle("like-on");
+  return liked;
 }
 
 // Buy button handler
@@ -56,13 +104,7 @@ function handleRate(event) {
   const productId = event.target.getAttribute("data-pid");
   const userId = getUserID();
   updateRatingDisplay(rating, productId);
-  sendInteraction("rate", productId, userId, rating);
-}
-
-// Toggle like button style
-function toggleLike(event) {
-  const liked = event.target.classList.contains("like-on");
-  event.target.className = liked ? "like" : "like like-on";
+  sendInteraction("rate", productId, userId, null, rating);
 }
 
 // Update rating display stars
@@ -75,6 +117,7 @@ function updateRatingDisplay(rating, productId) {
   });
 }
 
+// Send interaction data to the API
 function sendInteraction(
   action,
   productId,

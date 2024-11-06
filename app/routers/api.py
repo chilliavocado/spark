@@ -1,6 +1,6 @@
 # api.py
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import Optional
 from app.src.spark.data.loader import (
@@ -11,6 +11,7 @@ from app.src.spark.data.loader import (
     save_interaction,
     add_customer,
     get_recommendations,
+    get_next_interaction_id,
     assign_interactions_to_customers,
 )
 from app.src.spark.data.models import InteractionType
@@ -22,18 +23,6 @@ from datetime import datetime
 from pydantic import BaseModel
 
 router = APIRouter()
-
-
-# Define the InteractionData model
-class InteractionData(BaseModel):
-    user_id: int
-    product_id: int
-    interaction_type: str
-    value: Optional[float] = None
-    review_score: Optional[int] = None
-    zip_code: Optional[int] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
 
 
 # Helper function to load model and initialize environment
@@ -123,48 +112,84 @@ async def get_Catalogue(category_id: Optional[int] = None):
     return JSONResponse(content=catalogue_data)
 
 
+class InteractionData(BaseModel):
+    user_id: int
+    product_id: int
+    interaction_type: str
+    value: Optional[float] = 0.0
+    review_score: Optional[int] = None
+    zip_code: Optional[int] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+
+
 @router.post("/api/interaction")
-async def save_Interaction(interaction: InteractionData):
-    """Save a new interaction, adding a new user if needed."""
+async def push_interaction(interaction: InteractionData):
+    """Save a new interaction and append it to the Interaction.csv file."""
+
+    # Validate and map interaction type
     try:
         interaction_type_enum = InteractionType(interaction.interaction_type)
     except ValueError:
-        return JSONResponse(content={"error": "Invalid interaction type"}, status_code=400)
+        raise HTTPException(status_code=400, detail="Invalid interaction type")
 
+    # Unpack interaction fields
     user_id = interaction.user_id
     product_id = interaction.product_id
-    value = interaction.value
-    review_score = interaction.review_score
+    review_score = interaction.review_score if interaction.review_score is not None else 0
     zip_code = interaction.zip_code
     city = interaction.city
     state = interaction.state
 
-    # Load customer data dynamically
-    customers, customer_id_to_index = load_customers(num_products=0)
-    customer_idx = customer_id_to_index.get(user_id)
+    # Retrieve product price for the value field
+    product = load_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
 
-    if customer_idx is None:
-        if zip_code is None or city is None or state is None:
-            return JSONResponse(
-                content={"error": "New customer requires zip_code, city, and state"},
-                status_code=400,
-            )
-        customer_idx = add_customer(user_id, zip_code, city, state, customers, customer_id_to_index, num_products=0)
+    if interaction_type_enum in [InteractionType.RATE, InteractionType.LIKE, InteractionType.VIEW]:
+        value = 1
+    else:
+        value = product.price
 
-    # Record interaction
-    interaction_id = len(customers[customer_idx].interactions)
+    # Load or add the customer
+    customer = load_customer(user_id)
+    if not customer:
+        if not all([zip_code, city, state]):
+            raise HTTPException(status_code=400, detail="New customer requires zip_code, city, and state")
+
+        # If new customer, add and load customers and indices
+        customers, customer_id_to_index = load_customers(num_products=0)
+        customer_idx = add_customer(
+            user_id=user_id,
+            zip_code=zip_code,
+            city=city,
+            state=state,
+            customers=customers,
+            customer_id_to_index=customer_id_to_index,
+            num_products=0,
+        )
+    else:
+        # Load customer indices if existing
+        _, customer_id_to_index = load_customers(num_products=0)
+        customer_idx = customer_id_to_index[user_id]
+
+    # Generate the next sequential interaction ID
+    interaction_id = get_next_interaction_id()
     timestamp = datetime.now()
+
+    # Prepare interaction data
     interaction_data = {
         "id": interaction_id,
         "timestamp": timestamp,
+        "idx": f"order-{interaction_id}" if interaction_type_enum == InteractionType.BUY else f"review-{interaction_id}",
         "product_idx": product_id,
         "customer_idx": customer_idx,
-        "type": interaction_type_enum,
-        "value": value if value is not None else 0.0,
         "review_score": review_score,
+        "type": interaction_type_enum.value,
+        "value": value,  # Use product's price as the value
     }
 
+    # Append interaction to the CSV file
     save_interaction(interaction_data)
-    assign_interactions_to_customers(customers, [interaction_data])
 
     return JSONResponse(content={"message": "Interaction saved successfully"})

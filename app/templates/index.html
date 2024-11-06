@@ -5,7 +5,11 @@
     <h1>Just for you!</h1>
     <div class="featured">
       <div class="image">
-        <a href="/product/{{ featured_product.id }}">
+        <a
+          href="/product/{{ featured_product.id }}"
+          data-pid="{{ featured_product.id }}"
+          class="product-view-link"
+        >
           <img
             src="{{ url_for('static', path='images/placeholder_img.png') }}"
             alt="{{ featured_product.name }}"
