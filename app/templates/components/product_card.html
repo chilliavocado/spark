@@ -1,13 +1,16 @@
 <div class="item">
-    <!-- product-->
-    <div class="image">
-        <a href="/product?pid={{ product.id }}"><img src="{{ url_for('static', path='images/rec_product_img.png') }}" alt="{{product.name}}" /></a>
-    </div>
-    <h5 class="name">{{ product.name }}</h5>
-    <div class="actions">
-        <!-- actions -->
-        <div name="like" data-pid="{{product.id}}" class="like"></div>
-        <div class="price">${{product.price}}</div>
-        <div name="buy" data-pid="{{product.id}}" class="buy"></div>
-    </div>
+  <div class="image">
+    <a href="/product/{{ product.id }}">
+      <img
+        src="{{ url_for('static', path='images/rec_product_img.png') }}"
+        alt="{{ product.name }}"
+      />
+    </a>
+  </div>
+  <h5 class="name">{{ product.name }}</h5>
+  <div class="actions">
+    <div name="like" data-pid="{{product.id}}" class="like"></div>
+    <div class="price">${{product.price}}</div>
+    <div name="buy" data-pid="{{product.id}}" class="buy"></div>
+  </div>
 </div>

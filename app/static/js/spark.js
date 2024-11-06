@@ -1,3 +1,15 @@
+// static/js/spark.js
+
+// Set or retrieve user ID (e.g., retrieved upon login)
+function setUserID(userId) {
+  localStorage.setItem("user_id", userId);
+}
+
+// Get the current user ID; if not set, default to 1
+function getUserID() {
+  return localStorage.getItem("user_id") || 1;
+}
+
 // Register event to all action buttons once the DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
   // Attach event listeners for action buttons
@@ -21,35 +33,36 @@ document.addEventListener("DOMContentLoaded", function () {
     button.setAttribute("tabindex", "0");
     button.setAttribute("role", "button");
   });
-
-  // Track product views only when they are actually interacted with
 });
 
 // Like button handler
 function handleLike(event) {
   const productId = event.target.getAttribute("data-pid");
+  const userId = getUserID();
   toggleLike(event);
-  sendInteraction("like", productId);
-}
-
-// Toggle like button style
-function toggleLike(event) {
-  const liked = event.target.classList.contains("like-on");
-  event.target.className = liked ? "like" : "like like-on";
+  sendInteraction("like", productId, userId);
 }
 
 // Buy button handler
 function handleBuy(event) {
   const productId = event.target.getAttribute("data-pid");
-  sendInteraction("buy", productId);
+  const userId = getUserID();
+  sendInteraction("buy", productId, userId);
 }
 
 // Rate button handler
 function handleRate(event) {
   const rating = parseInt(event.target.getAttribute("data-rating"), 10);
   const productId = event.target.getAttribute("data-pid");
+  const userId = getUserID();
   updateRatingDisplay(rating, productId);
-  sendInteraction("rate", productId, rating);
+  sendInteraction("rate", productId, userId, rating);
+}
+
+// Toggle like button style
+function toggleLike(event) {
+  const liked = event.target.classList.contains("like-on");
+  event.target.className = liked ? "like" : "like like-on";
 }
 
 // Update rating display stars
@@ -62,14 +75,25 @@ function updateRatingDisplay(rating, productId) {
   });
 }
 
-// Send interaction data to backend
-function sendInteraction(action, productId, value = null) {
+function sendInteraction(
+  action,
+  productId,
+  userId,
+  value = null,
+  reviewScore = null,
+  zipCode = null,
+  city = null,
+  state = null
+) {
   const interactionData = {
-    user_id: 1, // Replace with dynamic user ID if applicable
+    user_id: parseInt(userId),
     product_id: parseInt(productId),
     interaction_type: action,
     value: value,
-    timestamp: new Date().toISOString(),
+    review_score: reviewScore,
+    zip_code: zipCode,
+    city: city,
+    state: state,
   };
 
   fetch("/api/interaction", {
@@ -82,6 +106,8 @@ function sendInteraction(action, productId, value = null) {
     .then((response) => {
       if (!response.ok) {
         console.error("Error logging interaction:", response.statusText);
+      } else {
+        console.log("Interaction saved successfully");
       }
     })
     .catch((error) => {

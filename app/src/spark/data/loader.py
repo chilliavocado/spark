@@ -1,8 +1,12 @@
+# loader.py
+
 import pandas as pd
 from datetime import datetime
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from app.src.spark.data.models import Customer, Category, Product, Interaction, InteractionType
 import csv
+import numpy as np
+import torch
 
 data_dir = "app/src/spark/data/preprocessed_data/"
 
@@ -22,6 +26,13 @@ def load_customers(num_products: int, idxs: List[int] = []) -> Tuple[List[Custom
     ]
 
     return customers, customer_id_to_index
+
+
+def load_customer(idx: int) -> Optional[Customer]:
+    customer_df = pd.read_csv(f"{data_dir}Customer.csv")
+    row = customer_df[customer_df["idx"] == idx].iloc[0]
+    customer = Customer(idx=row["idx"], zip_code=str(row["zip_code"]), city=row["city"], state=row["state"], num_products=0)
+    return customer
 
 
 def load_categories(idxs: List[int] = []) -> List[Category]:
@@ -62,6 +73,36 @@ def load_products(idxs: List[int] = []) -> Tuple[List[Product], float, Dict[int,
     # Calculate the maximum price for setting price levels
     max_price = product_df["price"].max()
     return products, max_price, product_id_to_index
+
+
+def load_product(idx: int) -> Optional[Product]:
+    product_df = pd.read_csv(f"{data_dir}Product.csv")
+    category_df = pd.read_csv(f"{data_dir}Category.csv")
+
+    # Create a dictionary to map category IDs to Category objects
+    category_map = {row["idx"]: Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()}
+
+    # Get the product row based on the index
+    row = product_df[product_df["idx"] == idx].iloc[0]
+
+    product = Product(
+        idx=row["idx"],  # Use zero-based index
+        name=row["name"],
+        desc=row["desc"],
+        long_desc=row["long_desc"],
+        category=category_map.get(row["category_num_id"]),
+        price=row["price"],
+    )
+
+    # Convert category to a dictionary if it exists
+    if product.category:
+        product.category = {
+            "id": product.category.idx,
+            "name": product.category.name,
+            "desc": product.category.desc,
+        }
+
+    return product
 
 
 def load_interactions(product_id_to_index: Dict[int, int], customer_id_to_index: Dict[int, int]) -> List[Interaction]:
@@ -137,3 +178,47 @@ def assign_interactions_to_customers(customers, interactions):
         elif interaction_type == InteractionType.RATE:
             if interaction["review_score"]:
                 customer.ratings[product_idx] = interaction["review_score"]
+
+
+def get_recommendations(
+    user_id: int, customers: List[Customer], customer_id_to_index: Dict[int, int], products: List[Product], model, env, top_k: int = 5
+) -> Optional[List[Dict]]:
+    """Generate top_k product recommendations for a specific user."""
+    try:
+        user_idx = customer_id_to_index.get(user_id)
+        if user_idx is None:
+            return None  # User not found
+
+        # Reset the environment for the specified user
+        obs = env.reset(user_idx=user_idx)
+
+        # Convert the observation to a tensor for the model
+        obs_tensor, _ = model.policy.obs_to_tensor(obs)
+
+        # Get the Q-values for each product from the model
+        with torch.no_grad():
+            q_values = model.q_net(obs_tensor)
+
+        # Convert Q-values to numpy array and flatten
+        q_values = q_values.cpu().numpy().flatten()
+
+        # Get the indices of the top_k products based on Q-values
+        top_k_indices = np.argsort(q_values)[-top_k:][::-1]
+
+        # Prepare the list of recommended products
+        recommendations = [
+            {
+                "id": products[idx].idx,
+                "name": products[idx].name,
+                "price": f"{products[idx].price:.2f}",
+                "desc": products[idx].desc,
+                "image": "product_image.png",
+            }
+            for idx in top_k_indices
+        ]
+
+        return recommendations
+
+    except Exception as e:
+        print(f"Error generating recommendations: {e}")
+        return None

@@ -2,12 +2,10 @@
 
 <main class="index">
   <div class="recommendations">
-    <!-- Personalised recommendations -->
     <h1>Just for you!</h1>
     <div class="featured">
-      <!-- Top recommended product -->
       <div class="image">
-        <a href="/product?pid={{ featured_product.id }}">
+        <a href="/product/{{ featured_product.id }}">
           <img
             src="{{ url_for('static', path='images/featured_product.png') }}"
             alt="{{ featured_product.name }}"
@@ -17,10 +15,10 @@
       <h3 class="name">{{ featured_product.name }}</h3>
       <div class="desc">{{ featured_product.desc }}</div>
       <div class="actions">
-        <!-- Actions for featured product -->
         <div
           name="like"
           data-pid="{{ featured_product.id }}"
+          data-user-id="{{ user_id }}"
           class="like"
           onclick="handleLike(event)"
         ></div>
@@ -28,13 +26,13 @@
         <div
           name="buy"
           data-pid="{{ featured_product.id }}"
+          data-user-id="{{ user_id }}"
           class="buy"
           onclick="handleBuy(event)"
         ></div>
       </div>
     </div>
     <div class="list">
-      <!-- Other recommended products -->
       {% for product in rec_products %} {% include
       "components/product_card.html" %} {% endfor %}
     </div>
@@ -43,7 +41,6 @@
   <div class="products">
     <h2 class="cat-name">Catalogue</h2>
     <div class="catalogue">
-      <!-- Product catalogue -->
       <div class="list">
         {% for product in cat_products %} {% include
         "components/product_card.html" %} {% endfor %}

@@ -181,6 +181,7 @@ main {
   margin: 10px 0;
   justify-content: space-evenly;
   align-items: center;
+  overflow-x: auto;
 }
 
 .recommendations .list .item .image {
