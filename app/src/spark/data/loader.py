@@ -5,9 +5,17 @@ import ast
 from spark.data.models import Customer, Category, Product, Interaction, InteractionType
 
 
+data_dir = "../app/src/spark/data/preprocessed_data/"
+model_dir = "../app/src/spark/agent/models/"
+
+def load_csv(filename: str) -> pd.DataFrame:
+    """Load a CSV file from the data directory."""
+    return pd.read_csv(f"{data_dir}{filename}")
+
+
 def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> List[Customer]:
-    customer_df = pd.read_csv("../app/src/spark/data/preprocessed_data/Customer.csv")
-    interaction_df = pd.read_csv("../app/src/spark/data/preprocessed_data/Interaction.csv") if include_interactions else None
+    customer_df = load_csv("Customer.csv")
+    interaction_df = load_csv("Interaction.csv") if include_interactions else None
 
     if idxs:
         customer_df = customer_df[customer_df["idx"].isin(idxs)]
@@ -15,12 +23,12 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> 
     customers = []
     for _, row in customer_df.iterrows():
         interactions = []
-        if include_interactions:
+        if include_interactions and interaction_df is not None:
             customer_interactions = interaction_df[interaction_df["customer_idx"] == row["idx"]]
             for _, int_row in customer_interactions.iterrows():
                 interactions.append(
                     Interaction(
-                        idx=int_row["idx"],
+                        idx=str(int_row["idx"]),
                         timestamp=datetime.strptime(int_row["timestamp"], "%Y-%m-%d %H:%M:%S"),
                         customer_idx=int_row["customer_idx"],
                         product_idx=int_row["product_idx"],
@@ -30,8 +38,11 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> 
                     )
                 )
 
-        customers.append(Customer(idx=row["idx"], zip_code=row["zip_code"], city=row["city"], state=row["state"], interactions=interactions))
+        customer = Customer(idx=row["idx"], zip_code=row["zip_code"], city=row["city"], state=row["state"], interactions=interactions)
+        customers.append(customer)
+
     return customers
+
 
 
 def parse_vector_field(field: str) -> List[float]:
