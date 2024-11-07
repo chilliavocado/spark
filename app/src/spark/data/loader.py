@@ -11,6 +11,7 @@ import torch
 from app.src.spark import utils
 from stable_baselines3 import PPO
 from app.src.spark.agent.environment import RecommendationEnv
+import traceback
 
 data_dir = "app/src/spark/data/preprocessed_data/"
 model_dir = "app/src/spark/agent/models/"
@@ -30,6 +31,7 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = True) -> L
         customer_df = customer_df[customer_df["idx"].isin(idxs)]
 
     customers = []
+    num_products = 100  # Adjust as needed to match your dataset
     for _, row in customer_df.iterrows():
         interactions = []
         if include_interactions and interaction_df is not None:
@@ -48,6 +50,12 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = True) -> L
                 )
 
         customer = Customer(idx=row["idx"], zip_code=row["zip_code"], city=row["city"], state=row["state"], interactions=interactions)
+        # Initialize views, likes, buys, and ratings as numeric arrays
+        customer.views = np.zeros(num_products, dtype=float)
+        customer.likes = np.zeros(num_products, dtype=float)
+        customer.buys = np.zeros(num_products, dtype=float)
+        customer.ratings = np.zeros(num_products, dtype=float)
+
         customers.append(customer)
 
     return customers
@@ -82,7 +90,10 @@ def load_products() -> List[Product]:
 
 def load_product(idx: int) -> Optional[Product]:
     products = load_products()
-    return products.get(idx)
+    for product in products:
+        if product.idx == idx:
+            return product
+    return None
 
 
 # Load categories
@@ -198,12 +209,13 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 "desc": product_map[idx].desc,
                 "image": "product_image.png",
             }
-            for idx in recommended_product_indices[:5]  # Limit to top 5 recommendations
+            for idx in recommended_product_indices
             if idx in product_map
         ]
 
         return recommended_products
 
     except Exception as e:
-        print(f"Error generating recommendations: {e}")
+        tb = traceback.format_exc()
+        print(f"Error generating recommendations: {e}\n{tb}")
         return None

@@ -6,3 +6,5 @@ id,timestamp,idx,product_idx,customer_idx,review_score,type,value
 4,2024-11-07 17:36:01,review-4,0,1,0,view,1
 5,2024-11-07 17:39:48,review-5,0,1,0,view,1
 6,2024-11-07 18:45:23,review-6,6,1,0,view,1
+7,2024-11-07 20:01:13,review-7,2,1,0,view,1
+8,2024-11-07 20:02:52,review-8,1,1,0,view,1

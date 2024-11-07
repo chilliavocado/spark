@@ -36,12 +36,12 @@ async def get_user(user_id: int):
         "state": customer.state,
         "interactions": [
             {
-                "id": int(interaction.idx),
-                "timestamp": interaction.timestamp,
+                "id": interaction.idx,
+                "timestamp": interaction.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                 "product_id": int(interaction.product_idx),
-                "type": interaction.type,
-                "value": f"{interaction.value:.2f}",
-                "review_score": interaction.review_score,
+                "type": interaction.type.value,
+                "value": f"{interaction.value:.2f}" if interaction.value is not None else "N/A",
+                "review_score": interaction.review_score if interaction.review_score is not None else "N/A",
             }
             for interaction in customer.interactions
         ],
@@ -88,7 +88,7 @@ async def get_product(product_id: int):
             "desc": product.desc,
             "long_desc": product.long_desc,
             "image": "product_image.png",
-            "category": product.category if product.category else None,
+            "category": {"id": product.category.idx, "name": product.category.name, "desc": product.category.desc} if product.category else None,
         }
         return JSONResponse(content=product_data)
     else:
@@ -107,10 +107,15 @@ async def get_products():
 async def get_catalogue(category_id: Optional[int] = None):
     """Fetch products by category if category_id is specified, otherwise all products."""
     products = load_products()
-    filtered_products = [p for p in products.values() if p.category.idx == category_id] if category_id else products.values()
+
+    # Filter products based on the category_id if provided
+    filtered_products = [p for p in products if p.category and p.category.idx == category_id] if category_id else products
+
     catalogue_data = [
-        {"cat_id": category_id, "id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"} for p in filtered_products
+        {"cat_id": p.category.idx if p.category else None, "id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"}
+        for p in filtered_products
     ]
+
     return JSONResponse(content=catalogue_data)
 
 
@@ -178,6 +183,6 @@ async def fetch_recommendations(user_id: int):
     """Generate product recommendations for a specific user."""
     recommendations_list = get_recommendations(user_id)
     if recommendations_list is None:
-        return JSONResponse(content={"error": "User not found"}, status_code=404)
+        return JSONResponse(content={"error": "No recommendations available"}, status_code=404)
 
     return JSONResponse(content=recommendations_list)
