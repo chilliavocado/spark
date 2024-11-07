@@ -5,12 +5,11 @@ import random
 from datetime import datetime
 from typing import List
 from app.src.spark.data.models import Customer, Product, Interaction, InteractionType
-from app.src.spark.data import loader
 from app.src.spark import utils
 
 
 class RecommendationEnv(gym.Env):
-    def __init__(self, users: List[Customer], products: List[Product], top_k: int):
+    def __init__(self, users: List[Customer], products: List[Product], categories, top_k: int):
         super().__init__()
 
         self.users = users  # list of users as states
@@ -18,7 +17,7 @@ class RecommendationEnv(gym.Env):
         self.top_k = top_k  # number of recommendations
         self.user_idx = 0  # index of users list, not user_id
         self.current_step = 0  # step is also the interactions list index
-        self.categories = loader.load_categories()
+        self.categories = categories
 
         self.action_space = spaces.MultiDiscrete([len(products)] * 10)
 
