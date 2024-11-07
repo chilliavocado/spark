@@ -118,7 +118,7 @@ class RecommendationEnv(gym.Env):
         elif interaction == InteractionType.BUY:
             user.buys[pid] += 1
         elif interaction == InteractionType.RATE:
-            user.rates[pid] = interaction.value
+            user.ratings[pid] = interaction.value
 
         # update observation based on new data
         obs = {
