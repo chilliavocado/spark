@@ -19,31 +19,44 @@ class Interaction:
         self,
         idx: str,
         timestamp: datetime,
-        product_idx: int,
         customer_idx: int,
+        product_idx: int,
         type: InteractionType,
-        value: float = 0.0,
+        value: Optional[float] = None,
         review_score: Optional[int] = None,
-    ):
+        city_embedding: Optional[List[int]] = None,
+        state_embedding: Optional[List[int]] = None,
+        zip_code_embedding: Optional[List[int]] = None,
+        product_purchase_history: Optional[List[float]] = None,
+        category_purchase_history: Optional[List[float]] = None,
+        rate_history: Optional[List[float]] = None,
+    ) -> None:
         self.idx = idx
         self.timestamp = timestamp
-        self.product_idx = product_idx
         self.customer_idx = customer_idx
+        self.product_idx = product_idx
         self.type = type
         self.value = value
         self.review_score = review_score
+        self.city_embedding = city_embedding
+        self.state_embedding = state_embedding
+        self.zip_code_embedding = zip_code_embedding
+        self.product_purchase_history = product_purchase_history
+        self.category_purchase_history = category_purchase_history
+        self.rate_history = rate_history
 
 
 class Customer:
-    def __init__(self, idx: int, zip_code: int, city: str, state: str, num_products: int):
+    def __init__(self, idx: int, zip_code: int, city: str, state: str, interactions: Optional[List[Interaction]] = None) -> None:
         self.idx = idx
         self.zip_code = zip_code
         self.city = city
         self.state = state
-        self.views = [0] * num_products
-        self.likes = [0] * num_products
-        self.purchases = [0] * num_products
-        self.ratings = [0] * num_products
+        self.buys = []  # number of purchases for each product. format [0,4,0,2]
+        self.views = []  # number of views for each product. format [0,30,23,3]
+        self.likes = []  # like for each product. format [0,1,0,1]
+        self.ratings = []  # max rating(0-5)for each product. format [0,1,4,2,0]
+        self.interactions = interactions if interactions is not None else []
 
 
 class Category:
