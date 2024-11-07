@@ -21,22 +21,51 @@ def load_csv(filename: str) -> pd.DataFrame:
     return pd.read_csv(f"{data_dir}{filename}")
 
 
-# Loading single and multiple customers
-def load_customers() -> Dict[int, Customer]:
+# Load customers with interactions if required
+def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> List[Customer]:
     customer_df = load_csv("Customer.csv")
-    return {row["idx"]: Customer(idx=row["idx"], zip_code=str(row["zip_code"]), city=row["city"], state=row["state"]) for _, row in customer_df.iterrows()}
+    interaction_df = load_csv("Interaction.csv") if include_interactions else None
+
+    if idxs:
+        customer_df = customer_df[customer_df["idx"].isin(idxs)]
+
+    customers = []
+    for _, row in customer_df.iterrows():
+        interactions = []
+        if include_interactions and interaction_df is not None:
+            customer_interactions = interaction_df[interaction_df["customer_idx"] == row["idx"]]
+            for _, int_row in customer_interactions.iterrows():
+                interactions.append(
+                    Interaction(
+                        idx=int_row["idx"],
+                        timestamp=datetime.strptime(int_row["timestamp"], "%Y-%m-%d %H:%M:%S"),
+                        customer_idx=int_row["customer_idx"],
+                        product_idx=int_row["product_idx"],
+                        type=InteractionType(int_row["type"]),
+                        value=int_row["value"],
+                        review_score=int_row["review_score"],
+                    )
+                )
+
+        customer = Customer(idx=row["idx"], zip_code=row["zip_code"], city=row["city"], state=row["state"], interactions=interactions)
+        customers.append(customer)
+
+    return customers
 
 
 def load_customer(idx: int) -> Optional[Customer]:
-    customers = load_customers()
-    return customers.get(idx)
+    customers = load_customers(include_interactions=True)
+    for customer in customers:
+        if customer.idx == idx:
+            return customer
+    return None
 
 
-# Loading single and multiple products
+# Load products
 def load_products() -> Dict[int, Product]:
     product_df = load_csv("Product.csv")
     category_df = load_csv("Category.csv")
-    category_map = {row["idx"]: {"id": row["idx"], "name": row["name"], "desc": row["desc"]} for _, row in category_df.iterrows()}
+    category_map = {row["idx"]: Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()}
 
     return {
         row["idx"]: Product(
@@ -56,15 +85,16 @@ def load_product(idx: int) -> Optional[Product]:
     return products.get(idx)
 
 
+# Load categories
 def load_categories(idxs: List[int] = []) -> List[Category]:
     category_df = load_csv("Category.csv")
     if idxs:
         category_df = category_df[category_df["idx"].isin(idxs)]
 
-    categories = [Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()]
-    return categories
+    return [Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()]
 
 
+# Load interactions
 def load_interactions() -> List[Interaction]:
     interaction_df = load_csv("Interaction.csv")
     return [
@@ -116,56 +146,28 @@ def save_interaction(interaction_data: Dict):
         )
 
 
-def get_product_preferences(obs: Dict) -> np.ndarray:
-    weights = {"views": 0.2, "buys": 1.0, "likes": 0.3, "ratings": 0.5}
-
-    max_views = np.max(obs["views"]) if np.max(obs["views"]) > 0 else 1
-    max_buys = np.max(obs["buys"]) if np.max(obs["buys"]) > 0 else 1
-    max_likes = np.max(obs["likes"]) if np.max(obs["likes"]) > 0 else 1
-    max_ratings = np.max(obs["ratings"]) if np.max(obs["ratings"]) > 0 else 1
-
-    product_prefs = (
-        (obs["views"] / max_views) * weights["views"]
-        + (obs["buys"] / max_buys) * weights["buys"]
-        + (obs["likes"] / max_likes) * weights["likes"]
-        + (obs["ratings"] / max_ratings) * weights["ratings"]
-    )
-
-    return product_prefs
-
-
-def get_category_preferences(obs: Dict, categories: List[int], num_products: int) -> np.ndarray:
-    cat_prefs = np.zeros(len(categories), np.float32)
-
-    for idx, val in enumerate(obs["pref_prod"]):
-        if val > 0:
-            cat_idx = idx % len(categories)
-            cat_prefs[cat_idx] += val
-
-    total_pref = np.sum(cat_prefs)
-    if total_pref > 0:
-        cat_prefs = cat_prefs / total_pref
-
-    return cat_prefs
-
-
 def get_recommendations(user_id: int) -> Optional[List[Dict]]:
     try:
+        # Load the model
         model_path = f"{model_dir}/ppo_recommender"
         model = PPO.load(model_path)
 
-        # Load the customer
+        # Load customers, products, categories, and interactions
         customer = load_customer(user_id)
         if not customer:
+            print("Customer not found.")
             return None
 
-        # Load products, categories, and interactions
+        customers = load_customers()
         products = load_products()
         categories = load_categories()
         interactions = load_interactions()
 
-        # Initialize the environment
-        env = RecommendationEnv(users=[customer], products=list(products.values()), categories=categories, top_k=10)
+        # Convert products to a list for compatibility with the environment
+        products_list = list(products.values())
+
+        # Initialize the environment with required arguments
+        env = RecommendationEnv(users=customers, products=products_list, categories=categories, top_k=5)
 
         # Simulate or find the last interaction for the user
         user_interactions = [i for i in interactions if i.customer_idx == user_id]
@@ -177,7 +179,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 idx="0",
                 timestamp=datetime.now(),
                 customer_idx=user_id,
-                product_idx=next(iter(products)).idx,  # Choose a default product
+                product_idx=products_list[0].idx if products_list else 0,
                 type=InteractionType.VIEW,
                 value=1.0,
                 review_score=0,
@@ -198,7 +200,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 "desc": products[idx].desc,
                 "image": "product_image.png",
             }
-            for idx in recommended_products[:5]
+            for idx in recommended_products[:5]  # Limit to top 5 recommendations
             if idx in products
         ]
 

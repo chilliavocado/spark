@@ -4,12 +4,12 @@ import numpy as np
 import random
 from datetime import datetime
 from typing import List
-from app.src.spark.data.models import Customer, Product, Interaction, InteractionType
+from app.src.spark.data.models import Customer, Product, Category, Interaction, InteractionType
 from app.src.spark import utils
 
 
 class RecommendationEnv(gym.Env):
-    def __init__(self, users: List[Customer], products: List[Product], categories, top_k: int):
+    def __init__(self, users: List[Customer], products: List[Product], categories: List[Category], top_k: int):
         super().__init__()
 
         self.users = users  # list of users as states
