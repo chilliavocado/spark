@@ -34,7 +34,45 @@ async def get_user(user_id: int):
         "zip_code": customer.zip_code,
         "city": customer.city,
         "state": customer.state,
+        "interactions": [
+            {
+                "id": int(interaction.idx),
+                "timestamp": interaction.timestamp,
+                "product_id": int(interaction.product_idx),
+                "type": interaction.type,
+                "value": f"{interaction.value:.2f}",
+                "review_score": interaction.review_score,
+            }
+            for interaction in customer.interactions
+        ],
     }
+    return JSONResponse(content=user_data)
+
+
+@router.get("/api/users")
+async def get_users():
+    """Fetch all users and their interaction history."""
+    customers = load_customers()
+    user_data = [
+        {
+            "id": int(customer.idx),
+            "zip_code": customer.zip_code,
+            "city": customer.city,
+            "state": customer.state,
+            "interactions": [
+                {
+                    "id": interaction.idx,
+                    "timestamp": interaction.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    "product_id": int(interaction.product_idx),
+                    "type": interaction.type.value,
+                    "value": f"{interaction.value:.2f}" if interaction.value is not None else "N/A",
+                    "review_score": interaction.review_score if interaction.review_score is not None else "N/A",
+                }
+                for interaction in customer.interactions
+            ],
+        }
+        for customer in customers
+    ]
     return JSONResponse(content=user_data)
 
 

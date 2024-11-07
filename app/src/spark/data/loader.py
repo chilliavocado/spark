@@ -22,7 +22,7 @@ def load_csv(filename: str) -> pd.DataFrame:
 
 
 # Load customers with interactions if required
-def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> List[Customer]:
+def load_customers(idxs: List[int] = [], include_interactions: bool = True) -> List[Customer]:
     customer_df = load_csv("Customer.csv")
     interaction_df = load_csv("Interaction.csv") if include_interactions else None
 
@@ -37,7 +37,7 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> 
             for _, int_row in customer_interactions.iterrows():
                 interactions.append(
                     Interaction(
-                        idx=int_row["idx"],
+                        idx=str(int_row["idx"]),
                         timestamp=datetime.strptime(int_row["timestamp"], "%Y-%m-%d %H:%M:%S"),
                         customer_idx=int_row["customer_idx"],
                         product_idx=int_row["product_idx"],
@@ -54,7 +54,7 @@ def load_customers(idxs: List[int] = [], include_interactions: bool = False) -> 
 
 
 def load_customer(idx: int) -> Optional[Customer]:
-    customers = load_customers(include_interactions=True)
+    customers = load_customers()
     for customer in customers:
         if customer.idx == idx:
             return customer
@@ -62,13 +62,13 @@ def load_customer(idx: int) -> Optional[Customer]:
 
 
 # Load products
-def load_products() -> Dict[int, Product]:
+def load_products() -> List[Product]:
     product_df = load_csv("Product.csv")
     category_df = load_csv("Category.csv")
     category_map = {row["idx"]: Category(idx=row["idx"], name=row["name"], desc=row["desc"]) for _, row in category_df.iterrows()}
 
-    return {
-        row["idx"]: Product(
+    return [
+        Product(
             idx=row["idx"],
             name=row["name"],
             desc=row["desc"],
@@ -77,7 +77,7 @@ def load_products() -> Dict[int, Product]:
             price=row["price"],
         )
         for _, row in product_df.iterrows()
-    }
+    ]
 
 
 def load_product(idx: int) -> Optional[Product]:
@@ -152,7 +152,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
         model_path = f"{model_dir}/ppo_recommender"
         model = PPO.load(model_path)
 
-        # Load customers, products, categories, and interactions
+        # Load customers, products, and interactions
         customer = load_customer(user_id)
         if not customer:
             print("Customer not found.")
@@ -161,13 +161,11 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
         customers = load_customers()
         products = load_products()
         categories = load_categories()
+        product_map = {product.idx: product for product in products}  # Create a map for quick lookup
         interactions = load_interactions()
 
-        # Convert products to a list for compatibility with the environment
-        products_list = list(products.values())
-
         # Initialize the environment with required arguments
-        env = RecommendationEnv(users=customers, products=products_list, categories=categories, top_k=5)
+        env = RecommendationEnv(users=customers, products=products, categories=categories, top_k=10)
 
         # Simulate or find the last interaction for the user
         user_interactions = [i for i in interactions if i.customer_idx == user_id]
@@ -179,7 +177,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 idx="0",
                 timestamp=datetime.now(),
                 customer_idx=user_id,
-                product_idx=products_list[0].idx if products_list else 0,
+                product_idx=products[0].idx if products else 0,  # Choose a default product if available
                 type=InteractionType.VIEW,
                 value=1.0,
                 review_score=0,
@@ -189,20 +187,22 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
         obs = env.update_observation(customer, last_interaction)
 
         # Use the model to predict based on the observation
-        recommended_products, _ = model.predict(obs, deterministic=True)
+        recommended_product_indices, _ = model.predict(obs, deterministic=True)
 
-        # Prepare and return the list of recommended products
-        return [
+        # Map recommended indices to actual products
+        recommended_products = [
             {
-                "id": products[idx].idx,
-                "name": products[idx].name,
-                "price": f"{products[idx].price:.2f}",
-                "desc": products[idx].desc,
+                "id": product_map[idx].idx,
+                "name": product_map[idx].name,
+                "price": f"{product_map[idx].price:.2f}",
+                "desc": product_map[idx].desc,
                 "image": "product_image.png",
             }
-            for idx in recommended_products[:5]  # Limit to top 5 recommendations
-            if idx in products
+            for idx in recommended_product_indices[:5]  # Limit to top 5 recommendations
+            if idx in product_map
         ]
+
+        return recommended_products
 
     except Exception as e:
         print(f"Error generating recommendations: {e}")
