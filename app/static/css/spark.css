@@ -375,7 +375,7 @@ main {
 }
 
 .detail .product .image img {
-  width: 100%;
+  width: 65%;
   height: 100%;
   object-fit: contain;
 }

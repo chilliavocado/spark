@@ -203,7 +203,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
         customer = env.users[user_id]
         products = env.products
         product_map = {product.idx: product for product in products}  # Create a map for quick lookup
-        
+
         # Get the last interaction or create a default one if not found
         interaction = get_last_interaction(user_id)
         if not interaction:
@@ -231,7 +231,7 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 "name": product_map[idx].name,
                 "price": f"{product_map[idx].price:.2f}",
                 "desc": product_map[idx].desc,
-                "image": "product_image.png",
+                "image": f"{product_map[idx].category.name}.jpeg" if product_map[idx].category else "default.jpeg",
             }
             for idx in recommended_product_indices
             if idx in product_map
