@@ -176,45 +176,54 @@ def get_last_interaction(customer_idx: int) -> Optional[Interaction]:
     )
 
 
+def get_model_and_env() -> Tuple[PPO, RecommendationEnv]:
+    """Load the model and environment for generating recommendations."""
+    model_path = f"{model_dir}/ppo_recommender"
+    model = PPO.load(model_path)
+
+    # Load customers, products, and interactions
+    customers = load_customers()
+    products = load_products()
+    categories = load_categories()
+    product_map = {product.idx: product for product in products}  # Create a map for quick lookup
+
+    # Initialize the environment with required arguments
+    env = RecommendationEnv(users=customers, products=products, categories=categories, top_k=10)
+    env.seed(100)
+
+    return model, env
+
+
+# Load the model and environment once for reuse
+model, env = get_model_and_env()
+
+
 def get_recommendations(user_id: int) -> Optional[List[Dict]]:
     try:
-        # Load the model
-        model_path = f"{model_dir}/ppo_recommender"
-        model = PPO.load(model_path)
-
         # Load customers, products, and interactions
         customer = load_customer(user_id)
         if not customer:
             print("Customer not found.")
             return None
 
-        customers = load_customers()
         products = load_products()
-        categories = load_categories()
         product_map = {product.idx: product for product in products}  # Create a map for quick lookup
-        # interactions = load_interactions()
+
+        # Get the last interaction or create a default one if not found
         interaction = get_last_interaction(user_id)
+        if not interaction:
+            # Create a default interaction if none exists
+            interaction = Interaction(
+                idx="0",
+                timestamp=datetime.now(),
+                customer_idx=user_id,
+                product_idx=products[0].idx if products else 0,  # Choose a default product if available
+                type=InteractionType.VIEW,
+                value=1.0,
+                review_score=0,
+            )
 
-        # Initialize the environment with required arguments
-        env = RecommendationEnv(users=customers, products=products, categories=categories, top_k=10)
-
-        # # Simulate or find the last interaction for the user
-        # user_interactions = [i for i in interactions if i.customer_idx == user_id]
-        # if user_interactions:
-        #     last_interaction = user_interactions[-1]
-        # else:
-        #     # Simulate a last interaction if none exists
-        #     last_interaction = Interaction(
-        #         idx="0",
-        #         timestamp=datetime.now(),
-        #         customer_idx=user_id,
-        #         product_idx=products[0].idx if products else 0,  # Choose a default product if available
-        #         type=InteractionType.VIEW,
-        #         value=1.0,
-        #         review_score=0,
-        #     )
-
-        # Update the observation using the environment and last interaction
+        # Update the observation using the environment and interaction
         obs = env.update_observation(customer, interaction)
 
         # Use the model to predict based on the observation

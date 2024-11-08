@@ -99,7 +99,17 @@ async def get_product(product_id: int):
 async def get_products():
     """Fetch all products available in the catalog."""
     products = load_products()
-    product_data = [{"id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"} for p in products.values()]
+    product_data = [
+        {
+            "id": p.idx,
+            "name": p.name,
+            "price": f"{p.price:.2f}",
+            "desc": p.desc,
+            "image": "product_image.png",
+            "category": {"id": p.category.idx, "name": p.category.name, "desc": p.category.desc} if p.category else None,
+        }
+        for p in products
+    ]
     return JSONResponse(content=product_data)
 
 

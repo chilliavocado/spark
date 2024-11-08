@@ -7,7 +7,7 @@ function setUserID(userId) {
 
 // Get the current user ID; if not set, default to 1
 function getUserID() {
-  return localStorage.getItem("user_id") || 1;
+  return localStorage.getItem("user_id") || 0;
 }
 
 // Register event to all action buttons once the DOM is loaded
