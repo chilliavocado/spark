@@ -220,21 +220,6 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
 
         # Update the observation using the environment and interaction
         obs = env.update_observation(customer, interaction)
-        
-        print("ENV", env.observation_space)
-        print("pref_prod", len(obs['pref_prod']))
-        print("pref_cat", len(obs['pref_cat']))
-        print("buys", len(obs['buys']))
-        print("views", len(obs['views']))
-        print("likes", len(obs['likes']))
-        print("ratings", len(obs['ratings']))
-        print("product", len(obs['product']))
-        print("interaction", len(obs['interaction']))
-        
-        print("c buys", len(customer.buys))
-        print("c views", len(customer.views))
-        print("c likes", len(customer.likes))
-        print("c ratings", len(customer.ratings))
 
         # Use the model to predict based on the observation
         recommended_product_indices, _ = model.predict(obs, deterministic=True)
