@@ -105,7 +105,7 @@ async def get_products():
             "name": p.name,
             "price": f"{p.price:.2f}",
             "desc": p.desc,
-            "image": "product_image.png",
+            "image": f"{p.category.name}.jpeg" if p.category else "product_image.png",
             "category": {"id": p.category.idx, "name": p.category.name, "desc": p.category.desc} if p.category else None,
         }
         for p in products
@@ -122,7 +122,14 @@ async def get_catalogue(category_id: Optional[int] = None):
     filtered_products = [p for p in products if p.category and p.category.idx == category_id] if category_id else products
 
     catalogue_data = [
-        {"cat_id": p.category.idx if p.category else None, "id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"}
+        {
+            "cat_id": p.category.idx if p.category else None,
+            "id": p.idx,
+            "name": p.name,
+            "price": f"{p.price:.2f}",
+            "desc": p.desc,
+            "image": f"{p.category.name}.jpeg" if p.category else "default.jpeg",
+        }
         for p in filtered_products
     ]
 

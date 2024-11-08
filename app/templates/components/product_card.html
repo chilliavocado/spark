@@ -6,7 +6,7 @@
       data-pid="{{ product.id }}"
     >
       <img
-        src="{{ url_for('static', path='images/placeholder_img.png') }}"
+        src="{{ url_for('static', path='images/' + product.image) }}"
         alt="{{ product.name }}"
       />
     </a>

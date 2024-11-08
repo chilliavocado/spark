@@ -11,7 +11,7 @@
           class="product-view-link"
         >
           <img
-            src="{{ url_for('static', path='images/placeholder_img.png') }}"
+            src="{{ url_for('static', path='images/' + (featured_product.category.name if featured_product.category else 'default') + '.jpeg') }}"
             alt="{{ featured_product.name }}"
           />
         </a>
