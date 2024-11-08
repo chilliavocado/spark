@@ -9,7 +9,7 @@ import csv
 import numpy as np
 import torch
 from app.src.spark import utils
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, A2C
 from app.src.spark.agent.environment import RecommendationEnv
 import traceback
 
@@ -176,10 +176,10 @@ def get_last_interaction(customer_idx: int) -> Optional[Interaction]:
     )
 
 
-def get_model_and_env() -> Tuple[PPO, RecommendationEnv]:
+def get_model_and_env() -> Tuple[A2C, RecommendationEnv]:
     """Load the model and environment for generating recommendations."""
-    model_path = f"{model_dir}/ppo_recommender"
-    model = PPO.load(model_path)
+    model_path = f"{model_dir}/a2c_model"
+    model = A2C.load(model_path)
 
     # Load customers, products, and interactions
     customers = load_customers()
@@ -201,14 +201,18 @@ model, env = get_model_and_env()
 def get_recommendations(user_id: int) -> Optional[List[Dict]]:
     try:
         # Load customers, products, and interactions
-        customer = load_customer(user_id)
-        if not customer:
-            print("Customer not found.")
-            return None
+        # customer = load_customer(user_id)
+        # if not customer:
+        #     print("Customer not found.")
+        #     return None
+        
 
-        products = load_products()
+        # products = load_products()
+
+        customer = env.users[user_id]
+        products = env.products
         product_map = {product.idx: product for product in products}  # Create a map for quick lookup
-
+        
         # Get the last interaction or create a default one if not found
         interaction = get_last_interaction(user_id)
         if not interaction:
@@ -218,13 +222,28 @@ def get_recommendations(user_id: int) -> Optional[List[Dict]]:
                 timestamp=datetime.now(),
                 customer_idx=user_id,
                 product_idx=products[0].idx if products else 0,  # Choose a default product if available
-                type=InteractionType.VIEW,
+                type=InteractionType.NONE,
                 value=1.0,
                 review_score=0,
             )
 
         # Update the observation using the environment and interaction
         obs = env.update_observation(customer, interaction)
+        
+        print("ENV", env.observation_space)
+        print("pref_prod", len(obs['pref_prod']))
+        print("pref_cat", len(obs['pref_cat']))
+        print("buys", len(obs['buys']))
+        print("views", len(obs['views']))
+        print("likes", len(obs['likes']))
+        print("ratings", len(obs['ratings']))
+        print("product", len(obs['product']))
+        print("interaction", len(obs['interaction']))
+        
+        print("c buys", len(customer.buys))
+        print("c views", len(customer.views))
+        print("c likes", len(customer.likes))
+        print("c ratings", len(customer.ratings))
 
         # Use the model to predict based on the observation
         recommended_product_indices, _ = model.predict(obs, deterministic=True)

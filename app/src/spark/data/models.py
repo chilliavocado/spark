@@ -9,7 +9,6 @@ class InteractionType(Enum):
     LIKE = "like"
     BUY = "buy"
     RATE = "rate"
-    EXIT = "exit"
     SESSION_START = "session_start"
     SESSION_CLOSE = "session_close"
 
