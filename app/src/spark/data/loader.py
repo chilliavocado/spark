@@ -200,15 +200,6 @@ model, env = get_model_and_env()
 
 def get_recommendations(user_id: int) -> Optional[List[Dict]]:
     try:
-        # Load customers, products, and interactions
-        # customer = load_customer(user_id)
-        # if not customer:
-        #     print("Customer not found.")
-        #     return None
-        
-
-        # products = load_products()
-
         customer = env.users[user_id]
         products = env.products
         product_map = {product.idx: product for product in products}  # Create a map for quick lookup
