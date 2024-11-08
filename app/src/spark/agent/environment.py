@@ -32,10 +32,10 @@ class RecommendationEnv(gym.Env):
             {
                 "pref_prod": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.float32),
                 "pref_cat": spaces.Box(low=0, high=1, shape=(len(self.categories),), dtype=np.float32),
-                "buys": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.uint8),
-                "views": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.uint8),
-                "likes": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.uint8),
-                "ratings": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.uint8),
+                "buys": spaces.Box(low=0, high=1000, shape=(len(self.products),), dtype=np.float32),
+                "views": spaces.Box(low=0, high=1000, shape=(len(self.products),), dtype=np.float32),
+                "likes": spaces.Box(low=0, high=1000, shape=(len(self.products),), dtype=np.float32),
+                "ratings": spaces.Box(low=0, high=5, shape=(len(self.products),), dtype=np.uint8),
                 "product": spaces.Box(low=0, high=1, shape=(len(self.products),), dtype=np.uint8),
                 "interaction": spaces.Box(low=0, high=1, shape=(len(list(InteractionType)),), dtype=np.uint8),
                 "rating": spaces.Discrete(6),
@@ -52,83 +52,73 @@ class RecommendationEnv(gym.Env):
         self.current_step = 0
         return self._get_observation(user), {}  # get current user features as states
 
-    def step(self, rec_products):
+    def step(self, rec_products, interaction: Interaction = None):
         """randomly interacting with product to mimick real user unpredictable behavious"""
         self.current_step += 1
-        user = self.users[self.user_idx]
+
+        # interaction passed in fro
+        if interaction:
+            self.user_idx = interaction.customer_idx
+        else:
+            # simulate selected recommended product and interaction
+            user_id = self.user_idx
+            interaction_time = datetime.now()
+            selected_pid, interaction_type = self._simulate_interaction(rec_products)  # generate random interaction
+            random_rating = random.randint(0, 5)
+            interaction = Interaction(-1, interaction_time, user_id, selected_pid, interaction_type, random_rating)
 
         reward = 0
         done = False
 
-        # simulate selected recommended product and interaction
-        selected_pid, interaction_type = self._simulate_interaction(rec_products)  # generate random interaction
-        # selected_pid = random.choice(rec_products)
-        # interaction_type = random.choice(list(InteractionType))
+        # reward function if the recommended product is clicked
+        if interaction.product_idx in rec_products:
+            if interaction.type == InteractionType.NONE:
+                reward = -1  # no interaction, customers not interested in recommendations
+            elif interaction.type == InteractionType.VIEW:
+                reward = 3
+            elif interaction.type == InteractionType.LIKE:
+                reward = 10
+            elif interaction.type == InteractionType.BUY:
+                reward = 50
+            elif interaction.type == InteractionType.RATE:
+                reward = interaction.value - 2  # rating of 1 is negative
 
-        random_rating = 0
-
-        if interaction_type == InteractionType.NONE:
-            reward = -1  # no interaction, customers not interested in recommendations
-        elif interaction_type == InteractionType.VIEW:
-            reward = 3
-        elif interaction_type == InteractionType.LIKE:
-            reward = 10
-        elif interaction_type == InteractionType.BUY:
-            reward = 50
-        elif interaction_type == InteractionType.RATE:
-            # generate rating, reward 1-2 is negative 3 neutral and 5 positive
-            random_rating = random.randint(0, 5)
-            reward = random_rating - 1
-        elif interaction_type == InteractionType.SESSION_START:
-            reward = 0
-        elif interaction_type == InteractionType.SESSION_CLOSE:
-            done = True
-            reward = 0  # TODO: check if engament is too short
-        else:
-            reward = 0
-
-        interaction_time = datetime.now()
+        done = interaction.type == InteractionType.SESSION_CLOSE
 
         interaction_info = {
             "interaction": {
                 "idx": -1,
-                "timestamp": interaction_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "user_id": user.idx,
-                "product_id": selected_pid,
-                "interaction": interaction_type.value,
-                "rating": random_rating,
+                "timestamp": interaction.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                "customer_id": interaction.customer_idx,
+                "product_id": interaction.product_idx,
+                "interaction": interaction.type.value,
+                "rating": interaction.value,
             }
         }
 
-        # generate random interaction
-        new_interaction = Interaction(self.current_step, interaction_time, user.idx, selected_pid, interaction_type, random_rating)
-        # reward = self._calculate_reward(user, product)
+        user = self.users[self.user_idx]
 
-        return self._update_observation(user, new_interaction), reward, done, False, interaction_info
+        return self._update_observation(user, interaction), reward, done, False, interaction_info
 
     def _update_observation(self, user: Customer, interaction: Interaction):
-        # update user data
-        # user = self.users[self.user_idx]
-        pid = interaction.product_idx
-
-        if interaction == InteractionType.VIEW:
-            user.views[pid] += 1
-        elif interaction == InteractionType.LIKE:
-            user.likes[pid] += 1
-        elif interaction == InteractionType.BUY:
-            user.buys[pid] += 1
-        elif interaction == InteractionType.RATE:
-            user.ratings[pid] = interaction.value
+        if interaction.type == InteractionType.VIEW:
+            user.views[interaction.product_idx] += 1
+        elif interaction.type == InteractionType.LIKE:
+            user.likes[interaction.product_idx] += 1
+        elif interaction.type == InteractionType.BUY:
+            user.buys[interaction.product_idx] += 1
+        elif interaction.type == InteractionType.RATE:
+            user.ratings[interaction.product_idx] = interaction.value
 
         # update observation based on new data
         obs = {
             "pref_prod": self._get_product_preferences(user),
             "pref_cat": self._get_category_preferences(user),
-            "buys": utils.normalise(user.buys),
-            "views": utils.normalise(user.views),
-            "likes": utils.normalise(user.likes),
+            "buys": user.buys,
+            "views": user.views,
+            "likes": user.likes,
             "ratings": user.ratings,
-            "product": utils.one_hot_encode(pid, len(self.products)),
+            "product": utils.one_hot_encode(interaction.product_idx, len(self.products)),
             "interaction": self._get_interaction_observation(interaction),
             "rating": interaction.value if interaction.type == InteractionType.RATE else 0,
         }
@@ -143,9 +133,9 @@ class RecommendationEnv(gym.Env):
         obs = {
             "pref_prod": self._get_product_preferences(user),
             "pref_cat": self._get_category_preferences(user),
-            "buys": utils.normalise(user.buys),
-            "views": utils.normalise(user.views),
-            "likes": utils.normalise(user.likes),
+            "buys": user.buys,
+            "views": user.views,
+            "likes": user.likes,
             "ratings": user.ratings,
             "product": np.zeros(len(self.products)),
             "interaction": np.zeros(len(list(InteractionType))),
@@ -170,6 +160,8 @@ class RecommendationEnv(gym.Env):
         rating_prefs[rating_prefs > 0] -= 2
 
         product_prefs = view_prefs + purchase_prefs + like_prefs + rating_prefs
+
+        product_prefs / 5  # reduce space
 
         return product_prefs  # calculate preferences based on past interactions
 
@@ -210,7 +202,7 @@ class RecommendationEnv(gym.Env):
             prod_scores[idx] = category_prefs[cid]
 
         # Ensure the probabilities sum to 1 for a valid probability distribution
-        if np.argmax(prod_scores) > 0:  # the product is in the preferences
+        if np.max(prod_scores) > 0:  # the product is in the preferences
             product_probs = np.array(prod_scores) / sum(prod_scores)
 
         # Randomly select a product based on the defined probabilities
@@ -231,7 +223,7 @@ class RecommendationEnv(gym.Env):
             if inter_type == InteractionType.RATE:
                 inter_scores[idx] = user.ratings[selected_product_id]
 
-        if np.argmax(inter_scores) > 0:
+        if np.max(inter_scores) > 0:
             inter_scores[inter_scores == 0] = 1  # default score for interaction that are 0
             inter_probs = np.array(inter_scores) / sum(inter_scores)
 
