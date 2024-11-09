@@ -37,6 +37,15 @@ main {
   height: 56vh;
 }
 
+/* .login {
+  position: absolute;
+  display: flex;
+  background-color: lightgray;
+  padding: 45px;
+  border-radius: 25px;
+  width: 200px;
+} */
+
 .index .recommendations h1 {
   padding: 0;
   margin: 0;

@@ -135,10 +135,11 @@ def get_next_interaction_id() -> int:
 
 
 def save_interaction(interaction_data: Dict):
-    """Save interaction data to a separate interaction log file."""
+    """Save interaction data to a separate interaction log file and update the environment observation."""
     file_path = f"{data_dir}/UserInteractionLog.csv"
     is_empty = not os.path.isfile(file_path) or os.path.getsize(file_path) == 0
 
+    # Save interaction data to CSV
     with open(file_path, mode="a", newline="") as file:
         writer = csv.writer(file)
         if is_empty:
@@ -155,6 +156,26 @@ def save_interaction(interaction_data: Dict):
                 interaction_data["value"],
             ]
         )
+
+    # Find the corresponding customer in the environment
+    customer_idx = interaction_data["customer_idx"]
+    customer = next((user for user in env.users if user.idx == customer_idx), None)
+
+    # Ensure the customer exists in the environment before updating
+    if customer:
+        # Create an Interaction instance from interaction_data for updating the observation
+        interaction = Interaction(
+            idx=interaction_data["idx"],
+            timestamp=interaction_data["timestamp"],
+            customer_idx=interaction_data["customer_idx"],
+            product_idx=interaction_data["product_idx"],
+            type=InteractionType(interaction_data["type"]),
+            value=interaction_data["value"],
+            review_score=interaction_data["review_score"],
+        )
+
+        # Update the observation in the environment
+        updated_obs = env.update_observation(customer, interaction)
 
 
 def get_last_interaction(customer_idx: int) -> Optional[Interaction]:
