@@ -1,87 +1,208 @@
-from fastapi import APIRouter, Request
+# api.py
+
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from typing import List, Optional
-from app.src.spark.data.loader import load_products, load_customers
-import json
+from typing import Optional
+from app.src.spark.data.loader import (
+    load_product,
+    load_products,
+    load_customer,
+    load_customers,
+    save_interaction,
+    get_recommendations,
+    set_current_user,
+    get_current_user,
+    get_next_interaction_id,
+)
+from app.src.spark.data.models import InteractionType
+from datetime import datetime
+from pydantic import BaseModel
 
 router = APIRouter()
 
-# API router
-# use a switch statement to select the right agent
-# and fetch the right data
-#
+
+@router.get("/api/currentUser")
+async def fetch_current_user():
+    """Fetch the current user from the client-side or server-side variable."""
+    user_id = get_current_user()
+    return JSONResponse(content={"user_id": user_id})
 
 
-# @router.get("/api")
-# async def dummy_data():
-#     data = [
-#         {
-#             "id": 1,
-#             "name": "Product 1",
-#             "price": "99.00",
-#             "desc": "Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1 Description of Product 1",
-#             "image": "featured_product.png",
-#         },
-#         {"id": 2, "name": "Product 2", "price": "20.99", "desc": "Description of Product 2", "image": "rec_product_img.png"},
-#         {"id": 3, "name": "Product 3", "price": "23.99", "desc": "Description of Product 3", "image": "rec_product_img.png"},
-#         {"id": 4, "name": "Product 4", "price": "64.99", "desc": "Description of Product 4", "image": "rec_product_img.png"},
-#         {"id": 5, "name": "Product 5", "price": "22.99", "desc": "Description of Product 5", "image": "rec_product_img.png"},
-#         {"id": 6, "name": "Product 6", "price": "61.99", "desc": "Description of Product 6", "image": "rec_product_img.png"},
-#         {"id": 7, "name": "Product 7", "price": "96.99", "desc": "Description of Product 7", "image": "rec_product_img.png"},
-#         {"id": 8, "name": "Product 8", "price": "27.99", "desc": "Description of Product 8", "image": "rec_product_img.png"},
-#         {"id": 9, "name": "Product 9", "price": "11.99", "desc": "Description of Product 9", "image": "rec_product_img.png"},
-#         {"id": 10, "name": "Product 10", "price": "45.99", "desc": "Description of Product 10", "image": "rec_product_img.png"},
-#         {"id": 11, "name": "Product 11", "price": "22.99", "desc": "Description of Product 11", "image": "rec_product_img.png"},
-#         {"id": 12, "name": "Product 12", "price": "85.99", "desc": "Description of Product 12", "image": "rec_product_img.png"},
-#         {"id": 13, "name": "Product 13", "price": "61.99", "desc": "Description of Product 13", "image": "rec_product_img.png"},
-#         {"id": 14, "name": "Product 14", "price": "34.99", "desc": "Description of Product 14", "image": "rec_product_img.png"},
-#         {"id": 15, "name": "Product 15", "price": "98.99", "desc": "Description of Product 15", "image": "rec_product_img.png"},
-#         {"id": 16, "name": "Product 16", "price": "46.99", "desc": "Description of Product 16", "image": "rec_product_img.png"},
-#         {"id": 17, "name": "Product 17", "price": "23.99", "desc": "Description of Product 17", "image": "rec_product_img.png"},
-#     ]
-#     return data
-
-
-@router.get("/api")
-async def get_products():
-    # Load all products from the data source
-    products = load_products()
-    # Format products as dictionaries for JSON response
-    data = [{"id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"} for p in products]
-    return JSONResponse(content=data)
-
-
-@router.get("/api/recommendations")
-async def recommendations(user_id):
-    # get recommendations for user with user_id
-    # if no user id, get the default recommendation
-    return []
-
-
-@router.get("/api/catalogue")
-async def catalogue(category_id: Optional[int] = None):
-    # Load products filtered by category if category_id is provided
-    products = load_products()
-    if category_id:
-        products = [p for p in products if p.category.idx == category_id]
-
-    data = [{"id": p.idx, "name": p.name, "price": f"{p.price:.2f}", "desc": p.desc, "image": "product_image.png"} for p in products]
-    return JSONResponse(content=data)
+@router.post("/api/setCurrentUser")
+async def set_current_user_endpoint(user_id: int):
+    """Set the current user ID in the server-side variable."""
+    set_current_user(user_id)
+    return JSONResponse(content={"message": f"User ID {user_id} set successfully"})
 
 
 @router.get("/api/user")
-async def user(user_id: int):
-    # Load user data from the data source
-    customers = load_customers(idxs=[user_id], include_interactions=True)
-    if not customers:
+async def get_user(user_id: int):
+    """Fetch user profile and interaction history."""
+    customer = load_customer(user_id)
+    if not customer:
         return JSONResponse(content={"error": "User not found"}, status_code=404)
 
-    customer = customers[0]
-    data = {
-        "id": customer.idx,
+    user_data = {
+        "id": int(customer.idx),
+        "zip_code": customer.zip_code,
         "city": customer.city,
         "state": customer.state,
-        "zip_code": customer.zip_code,
-        "interactions": [{"product_id": i.product_idx, "type": i.type.value, "value": i.value} for i in customer.interactions],
+        "interactions": [
+            {
+                "id": interaction.idx,
+                "timestamp": interaction.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                "product_id": int(interaction.product_idx),
+                "type": interaction.type.value,
+                "value": f"{interaction.value:.2f}" if interaction.value is not None else "N/A",
+                "review_score": interaction.review_score if interaction.review_score is not None else "N/A",
+            }
+            for interaction in customer.interactions
+        ],
     }
-    return JSONResponse(content=data)
+    return JSONResponse(content=user_data)
+
+
+@router.get("/api/users")
+async def get_users():
+    """Fetch all users and their interaction history."""
+    customers = load_customers()
+    user_data = [
+        {
+            "id": int(customer.idx),
+            "zip_code": customer.zip_code,
+            "city": customer.city,
+            "state": customer.state,
+            "interactions": [
+                {
+                    "id": interaction.idx,
+                    "timestamp": interaction.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    "product_id": int(interaction.product_idx),
+                    "type": interaction.type.value,
+                    "value": f"{interaction.value:.2f}" if interaction.value is not None else "N/A",
+                    "review_score": interaction.review_score if interaction.review_score is not None else "N/A",
+                }
+                for interaction in customer.interactions
+            ],
+        }
+        for customer in customers
+    ]
+    return JSONResponse(content=user_data)
+
+
+@router.get("/api/product")
+async def get_product(product_id: int):
+    """Fetch a specific product by its ID."""
+    product = load_product(product_id)
+    if product:
+        product_data = {
+            "id": int(product.idx),
+            "name": product.name,
+            "price": f"{product.price:.2f}",
+            "desc": product.desc,
+            "long_desc": product.long_desc,
+            "image": "product_image.png",
+            "category": {"id": product.category.idx, "name": product.category.name, "desc": product.category.desc} if product.category else None,
+        }
+        return JSONResponse(content=product_data)
+    else:
+        return JSONResponse(content={"error": "Product not found"}, status_code=404)
+
+
+@router.get("/api/products")
+async def get_products():
+    """Fetch all products available in the catalog."""
+    products = load_products()
+    product_data = [
+        {
+            "id": p.idx,
+            "name": p.name,
+            "price": f"{p.price:.2f}",
+            "desc": p.desc,
+            "image": f"{p.category.name}.jpeg" if p.category else "product_image.png",
+            "category": {"id": p.category.idx, "name": p.category.name, "desc": p.category.desc} if p.category else None,
+        }
+        for p in products
+    ]
+    return JSONResponse(content=product_data)
+
+
+@router.get("/api/catalogue")
+async def get_catalogue(category_id: Optional[int] = None):
+    """Fetch products by category if category_id is specified, otherwise all products."""
+    products = load_products()
+
+    # Filter products based on the category_id if provided
+    filtered_products = [p for p in products if p.category and p.category.idx == category_id] if category_id else products
+
+    catalogue_data = [
+        {
+            "cat_id": p.category.idx if p.category else None,
+            "id": p.idx,
+            "name": p.name,
+            "price": f"{p.price:.2f}",
+            "desc": p.desc,
+            "image": f"{p.category.name}.jpeg" if p.category else "default.jpeg",
+        }
+        for p in filtered_products
+    ]
+
+    return JSONResponse(content=catalogue_data)
+
+
+class InteractionData(BaseModel):
+    user_id: int
+    product_id: int
+    interaction_type: str
+    value: Optional[float] = 0.0
+    review_score: Optional[int] = None
+    zip_code: Optional[int] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+
+
+@router.post("/api/interaction")
+async def push_interaction(interaction: InteractionData):
+    """Save a new interaction to user.json."""
+    try:
+        interaction_type_enum = InteractionType(interaction.interaction_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid interaction type")
+
+    user_id = interaction.user_id
+    product_id = interaction.product_id
+    review_score = interaction.review_score if interaction.review_score is not None else 0
+
+    product = load_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    value = 1 if interaction_type_enum in [InteractionType.RATE, InteractionType.LIKE, InteractionType.VIEW] else product.price
+
+    interaction_id = get_next_interaction_id()
+    timestamp = datetime.now()
+
+    interaction_data = {
+        "id": interaction_id,
+        "timestamp": timestamp,
+        "idx": f"order-{interaction_id}" if interaction_type_enum == InteractionType.BUY else f"review-{interaction_id}",
+        "product_idx": product_id,
+        "customer_idx": user_id,
+        "review_score": review_score,
+        "type": interaction_type_enum.value,
+        "value": value,
+    }
+
+    save_interaction(interaction_data)
+    return JSONResponse(content={"message": "Interaction saved successfully"})
+
+
+@router.get("/api/recommendations")
+async def fetch_recommendations(user_id: int):
+    """Generate product recommendations for a specific user."""
+    try:
+        recommendations_list = get_recommendations(user_id)
+        if recommendations_list is None:
+            return JSONResponse(content={"error": "No recommendations available"}, status_code=404)
+        return JSONResponse(content=recommendations_list)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)

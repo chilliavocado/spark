@@ -4,7 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def one_hot_encode(index, size):
-    one_hot = np.zeros(size)
+    one_hot = np.zeros(size, dtype=np.uint8)
 
     if index < size:
         one_hot[index] = 1

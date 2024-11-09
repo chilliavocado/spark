@@ -1,84 +1,224 @@
-// register event to all action buttons
+// static/js/spark.js
+
+// Function to get user ID from the API
+async function getUserID() {
+  try {
+    const response = await fetch("/api/currentUser");
+    const data = await response.json();
+    return data.user_id || 0; // Default to 0 if no user_id is found
+  } catch (error) {
+    console.error("Error fetching user ID:", error);
+    return 0; // Fallback to 0 in case of error
+  }
+}
+
+// Function to set up the login handler
+function handleUserLogin() {
+  const loginButton = document.getElementById("login-button");
+  const userIdInput = document.getElementById("user-id-input");
+
+  if (loginButton && userIdInput) {
+    loginButton.addEventListener("click", () => {
+      const userId = userIdInput.value.trim();
+      if (userId) {
+        localStorage.setItem("user_id", userId);
+        alert("Setting UserID to " + userId);
+        fetch(`/api/setCurrentUser?user_id=${userId}`, { method: "POST" })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            location.reload(); // Refresh to apply the new user ID
+          })
+          .catch((error) =>
+            console.error("Error setting current user:", error)
+          );
+      } else {
+        alert("Please enter a valid User ID.");
+      }
+    });
+  }
+}
+
+// Register event to all action buttons once the DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
-  // add events to all action buttons
+  // Attach event listeners for action buttons
   const likeButtons = document.getElementsByName("like");
-  for (let i = 0; i < likeButtons.length; i++) {
-    likeButtons[i].addEventListener("click", addExperience);
-    likeButtons[i].addEventListener("click", toggleLike);
-    likeButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    likeButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  likeButtons.forEach((button) => {
+    button.addEventListener("click", handleLike);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
 
-  // rate buttons
   const buyButtons = document.getElementsByName("buy");
-  for (let i = 0; i < buyButtons.length; i++) {
-    buyButtons[i].addEventListener("click", addExperience);
-    buyButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    buyButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  buyButtons.forEach((button) => {
+    button.addEventListener("click", handleBuy);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
 
-  // rate buttons
   const rateButtons = document.getElementsByName("rate");
-  for (let i = 0; i < rateButtons.length; i++) {
-    rateButtons[i].addEventListener("click", addExperience);
-    rateButtons[i].addEventListener("click", rate);
-    rateButtons[i].setAttribute("tabindex", "0"); // Make div focusable
-    rateButtons[i].setAttribute("role", "button"); // Set role for accessibility
-  }
+  rateButtons.forEach((button) => {
+    button.addEventListener("click", handleRate);
+    button.setAttribute("tabindex", "0");
+    button.setAttribute("role", "button");
+  });
+
+  // Attach event listeners to product links for view tracking
+  const productLinks = document.querySelectorAll(".product-view-link");
+  productLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const productId = link.getAttribute("data-pid"); // Fix by ensuring `link` reference
+      const userId = getUserID();
+      trackView(productId, userId);
+    });
+  });
+
+  // Restore like status on load
+  restoreLikeStatus();
 });
 
-// like button image toggle
-function toggleLike(event) {
-  const liked = event.target.classList.contains("like-on");
-  likeProduct(event, !liked); // toggle status
+// Track product view interaction
+function trackView(productId, userId) {
+  console.log("Product view:", productId, userId);
+  sendInteraction("view", productId, userId);
 }
 
-function likeProduct(event, like = true) {
-  event.target.className = like ? "like like-on" : "like";
+// Register event to all action buttons once the DOM is loaded
+document.addEventListener("DOMContentLoaded", async function () {
+  // Fetch and display the current user ID
+  const currentUserId = await getUserID();
+  document.getElementById("user_id").textContent = currentUserId;
+
+  handleUserLogin(); // Set up the login button handler
+
+  // Attach event listeners to product links for view tracking
+  const productLinks = document.querySelectorAll(".product-view-link");
+  productLinks.forEach((link) => {
+    link.addEventListener("click", async (event) => {
+      const productId = link.getAttribute("data-pid");
+      const userId = await getUserID();
+      trackView(productId, userId);
+    });
+  });
+
+  restoreLikeStatus(); // Restore like status on page load
+});
+
+// Like button handler
+async function handleLike(event) {
+  const productId = event.target.getAttribute("data-pid");
+  const userId = await getUserID();
+  const isLiked = toggleLike(event);
+
+  // Set interaction value to 1 for like, 0 for unlike
+  const value = isLiked ? 1 : 0;
+  saveLikeStatus(productId, isLiked); // Persist like status
+  sendInteraction("like", productId, userId, value);
 }
 
-// like button image toggle
-function rate(event) {
-  target = event.target;
-  rating = parseInt(target.getAttribute("data-rating"), 10);
-  pid = target.getAttribute("data-pid");
-
-  rateProduct(rating, pid);
+// Save like status to localStorage for persisting per user and product
+function saveLikeStatus(productId, isLiked) {
+  const likes = JSON.parse(localStorage.getItem("likes") || "{}");
+  likes[productId] = isLiked;
+  localStorage.setItem("likes", JSON.stringify(likes));
 }
 
-function rateProduct(rating, pid) {
-  // style stars to display rating
-  const rateButtons = document.getElementsByName("rate");
-  for (let i = 0; i < rateButtons.length; i++) {
-    rateButton = rateButtons[i];
-    if (rateButton.getAttribute("data-pid") != pid) return;
-
-    if (i < rating) {
-      rateButton.className = "star star-on";
-    } else {
-      rateButton.className = "star";
+// Restore like status from localStorage on load
+function restoreLikeStatus() {
+  const likes = JSON.parse(localStorage.getItem("likes") || "{}");
+  const likeButtons = document.getElementsByName("like");
+  likeButtons.forEach((button) => {
+    const productId = button.getAttribute("data-pid");
+    if (likes[productId]) {
+      button.classList.add("like-on");
     }
-  }
+  });
 }
 
-// add experience to database for RL
-function addExperience(event) {
-  target = event.target;
-  action = target.getAttribute("name");
-  pid = target.getAttribute("data-pid");
+// Toggle like button style
+function toggleLike(event) {
+  const liked = event.target.classList.toggle("like-on");
+  return liked;
+}
 
-  console.log(action + " product " + pid);
+// Buy button handler
+async function handleBuy(event) {
+  const productId = event.target.getAttribute("data-pid");
+  const userId = await getUserID();
 
-  switch (action) {
-    case "like":
-      break;
-    case "buy":
-      break;
-    case "view":
-      break;
-    case "rate":
-      break;
-    default:
-    // do nothing
-  }
+  // Call sendInteraction and chain .then() to handle the response
+  sendInteraction("buy", productId, userId)
+    .then(() => {
+      alert("Purchased successfully!");
+      location.reload(); // Refresh the page to reflect changes
+    })
+    .catch((error) => {
+      console.error("Error logging purchase interaction:", error);
+      alert("An error occurred while logging the purchase interaction.");
+    });
+}
+
+// Rate button handler
+async function handleRate(event) {
+  const rating = parseInt(event.target.getAttribute("data-rating"), 10);
+  const productId = event.target.getAttribute("data-pid");
+  const userId = await getUserID();
+  updateRatingDisplay(rating, productId);
+  sendInteraction("rate", productId, userId, null, rating);
+}
+
+// Update rating display stars
+function updateRatingDisplay(rating, productId) {
+  const rateButtons = document.querySelectorAll(
+    `[data-pid="${productId}"][name="rate"]`
+  );
+  rateButtons.forEach((button, index) => {
+    button.className = index < rating ? "star star-on" : "star";
+  });
+}
+
+function fetchProductDetails(productId) {
+  getUserID().then((userId) => {
+    fetch(`/api/product/${productId}?user_id=${userId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Product details:", data);
+        // Display or process the product details
+      })
+      .catch((error) =>
+        console.error("Error fetching product details:", error)
+      );
+  });
+}
+
+// Function to send interactions to the server, returning the fetch Promise
+function sendInteraction(
+  action,
+  productId,
+  userId,
+  value = null,
+  reviewScore = null
+) {
+  const interactionData = {
+    user_id: parseInt(userId, 10),
+    product_id: parseInt(productId, 10),
+    interaction_type: action,
+    value: value,
+    review_score: reviewScore,
+  };
+
+  // Return the Promise from fetch
+  return fetch("/api/interaction", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(interactionData),
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error("Error logging interaction: " + response.statusText);
+    }
+    console.log("Interaction saved successfully");
+    return response; // Return the response to allow chaining
+  });
 }

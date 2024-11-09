@@ -1,47 +1,60 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 
-{% block content %}
-
-<main class="index">
-    <div class="recommendations">
-        <!-- personalised recommendations -->
-        <h1>Just for you!</h1>
-        <div class="featured">
-            <!-- top recommended product-->
-            <div class="image">
-                <a href="/product?pid={{ featured_product.id }}"><img src="{{ url_for('static', path='images/featured_product.png') }}" alt="{{featured_product.name}}" /></a>
-                <!-- <a href="/product?pid={{ featured_product.id }}"><img src="{{ url_for('static', path='images/' + featured_product.image) }}" alt="{{featured_product.name}}" /></a> -->
-            </div>
-            <h3 class="name">{{featured_product.name}}</h3>
-            <div class="desc">
-                {{featured_product.desc}}
-            </div>
-            <div class="actions">
-                <!-- actions -->
-                <div name="like" data-pid="{{featured_product.id}}" class="like"></div>
-                <div class="price">${{featured_product.price}}</div>
-                <div name="buy" data-pid="{{featured_product.id}}" class="buy"></div>
-
-            </div>
-        </div>
-        <div class="list">
-            <!-- the rest of the recommended products-->
-            {% for product in rec_products %}
-            {% include "components/product_card.html" %}
-            {% endfor %}
-        </div>
+<div class="login">
+  <input type="text" id="user-id-input" placeholder="Enter User ID" />
+  <button id="login-button">Login</button>
+</div>
+<div class="loggedIn">
+  <p>Currently logged in: UserID <span id="user_id">{{ user_id }}</span></p>
+</div>
+<main class="index" style="height: 750px">
+  <div class="recommendations">
+    <h1>Just for you!</h1>
+    <div class="featured">
+      <div class="image">
+        <a
+          href="/product/{{ featured_product.id }}"
+          data-pid="{{ featured_product.id }}"
+          class="product-view-link"
+        >
+          <img
+            src="{{ url_for('static', path='images/' + (featured_product.image if featured_product.image else 'default.jpeg')) }}"
+            alt="{{ featured_product.name }}"
+          />
+        </a>
+      </div>
+      <h3 class="name">{{ featured_product.name }}</h3>
+      <div class="desc">{{ featured_product.desc }}</div>
+      <div class="actions">
+        <div
+          name="like"
+          data-pid="{{ featured_product.id }}"
+          data-user-id="{{ user_id }}"
+          class="like"
+        ></div>
+        <div class="price">${{ featured_product.price }}</div>
+        <div
+          name="buy"
+          data-pid="{{ featured_product.id }}"
+          data-user-id="{{ user_id }}"
+          class="buy"
+        ></div>
+      </div>
     </div>
-
-    <div class="products">
-        <h2 class="cat-name">Catalogue</h2>
-        <div class="catalogue">
-            <!-- product catalogue-->
-            <div class="list">
-                {% for product in cat_products %}
-                {% include "components/product_card.html" %}
-                {% endfor %}
-            </div>
-        </div>
+    <div class="list">
+      {% for product in rec_products %} {% include
+      "components/product_card.html" %} {% endfor %}
     </div>
+  </div>
+
+  <div class="products">
+    <h2 class="cat-name">Catalogue</h2>
+    <div class="catalogue">
+      <div class="list">
+        {% for product in cat_products %} {% include
+        "components/product_card.html" %} {% endfor %}
+      </div>
+    </div>
+  </div>
 </main>
 {% endblock %}
