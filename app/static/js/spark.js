@@ -1,8 +1,15 @@
 // static/js/spark.js
 
-// Function to get user ID from localStorage
-function getUserID() {
-  return localStorage.getItem("user_id") || 0;
+// Function to get user ID from the API
+async function getUserID() {
+  try {
+    const response = await fetch("/api/currentUser");
+    const data = await response.json();
+    return data.user_id || 0; // Default to 0 if no user_id is found
+  } catch (error) {
+    console.error("Error fetching user ID:", error);
+    return 0; // Fallback to 0 in case of error
+  }
 }
 
 // Function to set up the login handler
@@ -15,7 +22,7 @@ function handleUserLogin() {
       const userId = userIdInput.value.trim();
       if (userId) {
         localStorage.setItem("user_id", userId);
-        alert("User ID saved!");
+        alert("Setting UserID to " + userId);
         fetch(`/api/setCurrentUser?user_id=${userId}`, { method: "POST" })
           .then((response) => response.json())
           .then((data) => {
@@ -76,19 +83,21 @@ function trackView(productId, userId) {
   sendInteraction("view", productId, userId);
 }
 
-// On DOMContentLoaded, set up event handlers and display the current user ID
-document.addEventListener("DOMContentLoaded", function () {
-  const currentUserId = getUserID();
+// Register event to all action buttons once the DOM is loaded
+document.addEventListener("DOMContentLoaded", async function () {
+  // Fetch and display the current user ID
+  const currentUserId = await getUserID();
   document.getElementById("user_id").textContent = currentUserId;
 
   handleUserLogin(); // Set up the login button handler
 
-  // Additional code to handle product link clicks and user interactions
+  // Attach event listeners to product links for view tracking
   const productLinks = document.querySelectorAll(".product-view-link");
   productLinks.forEach((link) => {
-    link.addEventListener("click", (event) => {
+    link.addEventListener("click", async (event) => {
       const productId = link.getAttribute("data-pid");
-      trackView(productId, currentUserId);
+      const userId = await getUserID();
+      trackView(productId, userId);
     });
   });
 
@@ -96,9 +105,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Like button handler
-function handleLike(event) {
+async function handleLike(event) {
   const productId = event.target.getAttribute("data-pid");
-  const userId = getUserID();
+  const userId = await getUserID();
   const isLiked = toggleLike(event);
 
   // Set interaction value to 1 for like, 0 for unlike
@@ -133,17 +142,27 @@ function toggleLike(event) {
 }
 
 // Buy button handler
-function handleBuy(event) {
+async function handleBuy(event) {
   const productId = event.target.getAttribute("data-pid");
-  const userId = getUserID();
-  sendInteraction("buy", productId, userId);
+  const userId = await getUserID();
+
+  // Call sendInteraction and chain .then() to handle the response
+  sendInteraction("buy", productId, userId)
+    .then(() => {
+      alert("Purchased successfully!");
+      location.reload(); // Refresh the page to reflect changes
+    })
+    .catch((error) => {
+      console.error("Error logging purchase interaction:", error);
+      alert("An error occurred while logging the purchase interaction.");
+    });
 }
 
 // Rate button handler
-function handleRate(event) {
+async function handleRate(event) {
   const rating = parseInt(event.target.getAttribute("data-rating"), 10);
   const productId = event.target.getAttribute("data-pid");
-  const userId = getUserID();
+  const userId = await getUserID();
   updateRatingDisplay(rating, productId);
   sendInteraction("rate", productId, userId, null, rating);
 }
@@ -159,19 +178,27 @@ function updateRatingDisplay(rating, productId) {
 }
 
 function fetchProductDetails(productId) {
-  const userId = getUserID();
-  fetch(`/api/product/${productId}?user_id=${userId}`)
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Product details:", data);
-      // Display or process the product details
-    })
-    .catch((error) => console.error("Error fetching product details:", error));
+  getUserID().then((userId) => {
+    fetch(`/api/product/${productId}?user_id=${userId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Product details:", data);
+        // Display or process the product details
+      })
+      .catch((error) =>
+        console.error("Error fetching product details:", error)
+      );
+  });
 }
 
-// Function to send interactions to the server
-function sendInteraction(action, productId, value = null, reviewScore = null) {
-  const userId = getUserID();
+// Function to send interactions to the server, returning the fetch Promise
+function sendInteraction(
+  action,
+  productId,
+  userId,
+  value = null,
+  reviewScore = null
+) {
   const interactionData = {
     user_id: parseInt(userId, 10),
     product_id: parseInt(productId, 10),
@@ -180,21 +207,18 @@ function sendInteraction(action, productId, value = null, reviewScore = null) {
     review_score: reviewScore,
   };
 
-  fetch("/api/interaction", {
+  // Return the Promise from fetch
+  return fetch("/api/interaction", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(interactionData),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        console.error("Error logging interaction:", response.statusText);
-      } else {
-        console.log("Interaction saved successfully");
-      }
-    })
-    .catch((error) =>
-      console.error("Network error logging interaction:", error)
-    );
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error("Error logging interaction: " + response.statusText);
+    }
+    console.log("Interaction saved successfully");
+    return response; // Return the response to allow chaining
+  });
 }
