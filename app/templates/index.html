@@ -1,9 +1,13 @@
 {% extends "base.html" %} {% block content %}
 
+<div class="login">
+  <input type="text" id="user-id-input" placeholder="Enter User ID" />
+  <button id="login-button">Login</button>
+</div>
+<div class="loggedIn">
+  <p>Currently logged in: UserID <span id="user_id">{{ user_id }}</span></p>
+</div>
 <main class="index" style="height: 750px">
-  <!-- <div class="login">
-    <button id="login-button" data-user-id="{{ user_id }}">Login</button>
-  </div> -->
   <div class="recommendations">
     <h1>Just for you!</h1>
     <div class="featured">

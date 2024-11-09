@@ -10,16 +10,29 @@ from app.src.spark.data.loader import (
     load_customers,
     save_interaction,
     get_recommendations,
+    set_current_user,
+    get_current_user,
     get_next_interaction_id,
 )
 from app.src.spark.data.models import InteractionType
-from stable_baselines3 import DQN
-import torch
-import numpy as np
 from datetime import datetime
 from pydantic import BaseModel
 
 router = APIRouter()
+
+
+@router.get("/api/currentUser")
+async def fetch_current_user():
+    """Fetch the current user from the client-side or server-side variable."""
+    user_id = get_current_user()
+    return JSONResponse(content={"user_id": user_id})
+
+
+@router.post("/api/setCurrentUser")
+async def set_current_user_endpoint(user_id: int):
+    """Set the current user ID in the server-side variable."""
+    set_current_user(user_id)
+    return JSONResponse(content={"message": f"User ID {user_id} set successfully"})
 
 
 @router.get("/api/user")
@@ -149,7 +162,7 @@ class InteractionData(BaseModel):
 
 @router.post("/api/interaction")
 async def push_interaction(interaction: InteractionData):
-    """Save a new interaction and append it to the UserInteractionLog.csv file."""
+    """Save a new interaction to user.json."""
     try:
         interaction_type_enum = InteractionType(interaction.interaction_type)
     except ValueError:
@@ -158,24 +171,12 @@ async def push_interaction(interaction: InteractionData):
     user_id = interaction.user_id
     product_id = interaction.product_id
     review_score = interaction.review_score if interaction.review_score is not None else 0
-    zip_code = interaction.zip_code
-    city = interaction.city
-    state = interaction.state
 
     product = load_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     value = 1 if interaction_type_enum in [InteractionType.RATE, InteractionType.LIKE, InteractionType.VIEW] else product.price
-
-    customer = load_customer(user_id)
-    if not customer:
-        if not all([zip_code, city, state]):
-            raise HTTPException(status_code=400, detail="New customer requires zip_code, city, and state")
-
-        customer_idx = len(load_customers())
-    else:
-        customer_idx = user_id
 
     interaction_id = get_next_interaction_id()
     timestamp = datetime.now()
@@ -185,7 +186,7 @@ async def push_interaction(interaction: InteractionData):
         "timestamp": timestamp,
         "idx": f"order-{interaction_id}" if interaction_type_enum == InteractionType.BUY else f"review-{interaction_id}",
         "product_idx": product_id,
-        "customer_idx": customer_idx,
+        "customer_idx": user_id,
         "review_score": review_score,
         "type": interaction_type_enum.value,
         "value": value,
@@ -198,8 +199,10 @@ async def push_interaction(interaction: InteractionData):
 @router.get("/api/recommendations")
 async def fetch_recommendations(user_id: int):
     """Generate product recommendations for a specific user."""
-    recommendations_list = get_recommendations(user_id)
-    if recommendations_list is None:
-        return JSONResponse(content={"error": "No recommendations available"}, status_code=404)
-
-    return JSONResponse(content=recommendations_list)
+    try:
+        recommendations_list = get_recommendations(user_id)
+        if recommendations_list is None:
+            return JSONResponse(content={"error": "No recommendations available"}, status_code=404)
+        return JSONResponse(content=recommendations_list)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)

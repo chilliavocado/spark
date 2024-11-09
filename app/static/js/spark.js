@@ -1,13 +1,35 @@
 // static/js/spark.js
 
-// Set or retrieve user ID (e.g., retrieved upon login)
-function setUserID(userId) {
-  localStorage.setItem("user_id", userId);
-}
-
-// Get the current user ID; if not set, default to 1
+// Function to get user ID from localStorage
 function getUserID() {
   return localStorage.getItem("user_id") || 0;
+}
+
+// Function to set up the login handler
+function handleUserLogin() {
+  const loginButton = document.getElementById("login-button");
+  const userIdInput = document.getElementById("user-id-input");
+
+  if (loginButton && userIdInput) {
+    loginButton.addEventListener("click", () => {
+      const userId = userIdInput.value.trim();
+      if (userId) {
+        localStorage.setItem("user_id", userId);
+        alert("User ID saved!");
+        fetch(`/api/setCurrentUser?user_id=${userId}`, { method: "POST" })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data.message);
+            location.reload(); // Refresh to apply the new user ID
+          })
+          .catch((error) =>
+            console.error("Error setting current user:", error)
+          );
+      } else {
+        alert("Please enter a valid User ID.");
+      }
+    });
+  }
 }
 
 // Register event to all action buttons once the DOM is loaded
@@ -53,6 +75,25 @@ function trackView(productId, userId) {
   console.log("Product view:", productId, userId);
   sendInteraction("view", productId, userId);
 }
+
+// On DOMContentLoaded, set up event handlers and display the current user ID
+document.addEventListener("DOMContentLoaded", function () {
+  const currentUserId = getUserID();
+  document.getElementById("user_id").textContent = currentUserId;
+
+  handleUserLogin(); // Set up the login button handler
+
+  // Additional code to handle product link clicks and user interactions
+  const productLinks = document.querySelectorAll(".product-view-link");
+  productLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const productId = link.getAttribute("data-pid");
+      trackView(productId, currentUserId);
+    });
+  });
+
+  restoreLikeStatus(); // Restore like status on page load
+});
 
 // Like button handler
 function handleLike(event) {
@@ -117,26 +158,26 @@ function updateRatingDisplay(rating, productId) {
   });
 }
 
-// Send interaction data to the API
-function sendInteraction(
-  action,
-  productId,
-  userId,
-  value = null,
-  reviewScore = null,
-  zipCode = null,
-  city = null,
-  state = null
-) {
+function fetchProductDetails(productId) {
+  const userId = getUserID();
+  fetch(`/api/product/${productId}?user_id=${userId}`)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Product details:", data);
+      // Display or process the product details
+    })
+    .catch((error) => console.error("Error fetching product details:", error));
+}
+
+// Function to send interactions to the server
+function sendInteraction(action, productId, value = null, reviewScore = null) {
+  const userId = getUserID();
   const interactionData = {
-    user_id: parseInt(userId),
-    product_id: parseInt(productId),
+    user_id: parseInt(userId, 10),
+    product_id: parseInt(productId, 10),
     interaction_type: action,
     value: value,
     review_score: reviewScore,
-    zip_code: zipCode,
-    city: city,
-    state: state,
   };
 
   fetch("/api/interaction", {
@@ -153,7 +194,7 @@ function sendInteraction(
         console.log("Interaction saved successfully");
       }
     })
-    .catch((error) => {
-      console.error("Network error logging interaction:", error);
-    });
+    .catch((error) =>
+      console.error("Network error logging interaction:", error)
+    );
 }

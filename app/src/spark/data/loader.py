@@ -7,7 +7,6 @@ from typing import List, Tuple, Dict, Optional
 from app.src.spark.data.models import Customer, Category, Product, Interaction, InteractionType
 import csv
 import numpy as np
-import torch
 from app.src.spark import utils
 from stable_baselines3 import PPO, A2C
 from app.src.spark.agent.environment import RecommendationEnv
@@ -15,6 +14,21 @@ import traceback
 
 data_dir = "app/src/spark/data/preprocessed_data/"
 model_dir = "app/src/spark/agent/models/"
+
+current_user_id = 0
+
+
+def set_current_user(user_id: int):
+    """Set the current user ID for server use."""
+    global current_user_id
+    current_user_id = user_id
+    print(f"User ID set to: {user_id}")  # Debug log
+
+
+def get_current_user() -> int:
+    """Fetch the current user ID."""
+    print(f"Fetching current user ID: {current_user_id}")  # Debug log
+    return current_user_id
 
 
 def load_csv(filename: str) -> pd.DataFrame:
