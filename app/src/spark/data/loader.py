@@ -211,11 +211,11 @@ def get_last_interaction(customer_idx: int) -> Optional[Interaction]:
     )
 
 
-def get_model_and_env() -> Tuple[A2C, RecommendationEnv]:
+def get_model_and_env() -> Tuple[PPO, RecommendationEnv]:
     """Load the model and environment for generating recommendations."""
-    model = "a2c_recommender"
+    model = "ppo_recommender"
     model_path = f"{model_dir}/{model}"
-    model = A2C.load(model_path)
+    model = PPO.load(model_path)
 
     # Load customers, products, and interactions
     customers = load_customers()
