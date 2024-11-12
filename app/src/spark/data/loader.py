@@ -137,8 +137,8 @@ def load_interactions() -> List[Interaction]:
 
 
 def get_next_interaction_id() -> int:
-    """Retrieve the next interaction ID based on the last entry in the UserInteractionLog.csv file."""
-    file_path = f"{data_dir}/UserInteractionLog.csv"
+    """Retrieve the next interaction ID based on the last entry in the Interaction.csv file."""
+    file_path = f"{data_dir}/Interaction.csv"
     if not os.path.isfile(file_path):
         return 0
 
@@ -150,7 +150,7 @@ def get_next_interaction_id() -> int:
 
 def save_interaction(interaction_data: Dict):
     """Save interaction data to a separate interaction log file and update the environment observation."""
-    file_path = f"{data_dir}/UserInteractionLog.csv"
+    file_path = f"{data_dir}/Interaction.csv"
     is_empty = not os.path.isfile(file_path) or os.path.getsize(file_path) == 0
 
     # Save interaction data to CSV
@@ -193,15 +193,15 @@ def save_interaction(interaction_data: Dict):
 
 
 def get_last_interaction(customer_idx: int) -> Optional[Interaction]:
-    """Retrieve the last interaction for a specific customer from UserInteractionLog.csv."""
-    interaction = load_csv("UserInteractionLog.csv")
+    """Retrieve the last interaction for a specific customer from Interaction.csv."""
+    interaction = load_csv("Interaction.csv")
     interaction = interaction[interaction["customer_idx"] == customer_idx]
     if interaction.empty:
         return None
 
     interaction = interaction.iloc[-1]
     return Interaction(
-        idx=interaction["id"],
+        idx=interaction["idx"],
         timestamp=datetime.strptime(interaction["timestamp"], "%Y-%m-%d %H:%M:%S"),
         customer_idx=interaction["customer_idx"],
         product_idx=interaction["product_idx"],
